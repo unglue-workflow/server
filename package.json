@@ -6,6 +6,7 @@
   "dependencies": {
     "autoprefixer": "^9.4.2",
     "body-parser": "^1.18.3",
+    "crypto": "^1.0.1",
     "express": "^4.16.4",
     "fs-extra": "^7.0.1",
     "mkdirp": "^0.5.1",

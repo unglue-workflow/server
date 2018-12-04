@@ -4,24 +4,34 @@ const fs = require('fs-extra'),
       mkdirp = require('mkdirp'),
       sass = require('node-sass'),
       postcss = require('postcss'),
-      postcssAutoprefixer = require('autoprefixer');
+      postcssAutoprefixer = require('autoprefixer'),
+      crypto = require('crypto');
 
 exports.compile = function(req, res) {
-    const tempDir = appRoot + '/tmp/scss',
-          mainFile = req.body.mainFile,
+    const mainFile = req.body.mainFile,
           options = req.body.options;
 
-    let files = req.body.files
+    let files = req.body.files;
 
     if(!mainFile || !files) {
         res.json({'success': false, 'message': 'Files or mainFile argument is missing.'});
         return false;
     }
 
+    if(typeof files === 'string') {
+        files = JSON.parse(files);
+    }
+
+    // Generate hash based on mainFile and files
+    const hash = crypto.createHash('sha1').update(mainFile + JSON.stringify(files)).digest("hex");
+    const tempDir = appRoot + '/tmp/scss/' + hash;
+
+    console.info("Temp dir: " + tempDir);
+
     // Write files to disk
     for(let filePath in files) {
         const fileContent = files[filePath];
-        
+
         // Get folder path from filepath
         let folderPath = filePath.split('/');
         folderPath.pop();
@@ -29,6 +39,8 @@ exports.compile = function(req, res) {
 
         mkdirp.sync(tempDir + '/' + folderPath);
         fs.writeFileSync(tempDir + filePath, fileContent);
+
+        console.info("Writing file: " + filePath);
     }
 
     // Start compile

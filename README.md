@@ -19,9 +19,9 @@ Expects (and requires):
 
 ```json
 {
-    mainFile : '/path/to/main/file/as/it/is/in/files.scss',
-    files: {
-        '/path/to/file.scss' : 'content-of-file'
+    "mainFile" : "/path/to/main/file/as/it/is/in/files.scss",
+    "files": {
+        "/path/to/file.scss" : "content-of-file"
     }
 }
 ```

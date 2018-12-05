@@ -1,18 +1,31 @@
-var express = require('express'),
-  fs = require('fs'),
-  app = express(),
-  bodyParser = require('body-parser'),
-  port = process.env.PORT || 3000;
+const path = require('path'),
+      express = require('express'),
+      bodyParser = require('body-parser');
 
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-
-var routes = require('./api/routes/compile');
-routes(app);
-
-var path = require('path');
+// Define "appRoot" in global namespace
 global.appRoot = path.resolve(__dirname);
 
-app.listen(port);
+// Require the routes file
+const routes = require('./routes/routes.js');
 
-console.log('RESTful API server started on: ' + port);
+// Initialize express
+const app = express();
+
+// Accept JSON and urlencoded values
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Router
+routes(app);
+
+// Custom error handler
+app.use(function(error, req, res, next) {
+    if(res.statusCode === 200) {
+        res.status(500);
+    }
+    res.json({ message: error.message });
+});
+
+const server = app.listen(3000, function () {
+    console.log("Server running on port " + server.address().port);
+});

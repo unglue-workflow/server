@@ -23,6 +23,7 @@ app.use(function(error, req, res, next) {
     if(res.statusCode === 200) {
         res.status(500);
     }
+    console.log(error);
     res.json({ message: error.message });
 });
 

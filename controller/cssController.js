@@ -1,36 +1,41 @@
 const fs = require('fs-extra'),
-      mkdirp = require('mkdirp'),
       sass = require('node-sass'),
       postcss = require('postcss'),
       postcssAutoprefixer = require('autoprefixer'),
       crypto = require('crypto');
 
-const compileSass = function(tempDir, mainFile) {
-    const result = sass.renderSync({
-        file: tempDir + mainFile,
-        outputStyle: 'compressed',
-        sourceMap: true,
-        sourceMapEmbed: true
-    });
+const compileSass = function(tmpDir, mainFile) {
+    let result;
+    try {
+        result = sass.renderSync({
+            file: tmpDir + mainFile,
+            outputStyle: 'compressed',
+            sourceMap: true,
+            sourceMapEmbed: true
+        });
+    } catch(error) {
+        // Remove tmpDir to keep the tmp dir clean
+        fs.removeSync(tmpDir);
+        throw new Error(error.message);
+    }
+
     return result.css.toString('utf8');
 };
 
 const compilePostCss = function(css) {
-    const postcssPlugins = [postcssAutoprefixer];
-    result = postcss(postcssPlugins).process(css, {map: {inline: true}});
-
+    let result;
+    try {
+        const postcssPlugins = [postcssAutoprefixer];
+        result = postcss(postcssPlugins).process(css, {map: {inline: true}});
+    } catch(error) {
+        // Remove tmpDir to keep the tmp dir clean
+        fs.removeSync(tmpDir);
+        throw new Error(error.message);
+    }
     return result.css;
 };
 
-const compile = function(mainFile, files, res) {
-    // Generate hash based on mainFile and files
-    // Replace hash through identifier sent by client
-    const hash = crypto.createHash('sha1').update(mainFile + JSON.stringify(files)).digest("hex");
-    const tempDir = appRoot + '/tmp/scss/' + hash;
-
-    console.info("Temp dir: " + tempDir);
-
-    // Write files to disk
+const writeFiles = function(files, tmpDir) {
     for (let index in files) {
         const file = files[index];
         const filePath = file.file;
@@ -41,19 +46,41 @@ const compile = function(mainFile, files, res) {
         folderPath.pop();
         folderPath = folderPath.join('/');
 
-        mkdirp.sync(tempDir + '/' + folderPath);
-        fs.writeFileSync(tempDir + filePath, fileContent);
+        try {
+            fs.ensureDirSync(tmpDir + '/' + folderPath);
+            fs.writeFileSync(tmpDir + filePath, fileContent);
+        } catch(error) {
+            throw new Error(error.message);
+        }
 
         console.info("Writing file: " + filePath);
     }
 
+    return true;
+}
+
+const compile = function(mainFile, files, res) {
+    // Generate hash based on mainFile and files
+    // Replace hash through identifier sent by client
+    const hash = crypto.createHash('sha1').update(mainFile + JSON.stringify(files)).digest("hex");
+    const tmpDir = appRoot + '/tmp/scss/' + hash;
+
+    console.info("Temp dir: " + tmpDir);
+
+    // Write files to disk
+    writeFiles(files, tmpDir);
+
     let css;
-    css = compileSass(tempDir, mainFile);
+    css = compileSass(tmpDir, mainFile);
     css = compilePostCss(css);
     
-    fs.removeSync(tempDir);
+    // Remove temporary files
+    console.info("Removing " + tmpDir);
+    fs.removeSync(tmpDir);
 
-    res.json(css);
+    res.json({
+        css: css
+    });
 };
 
 exports.handleRequest = function(req, res, next) {
@@ -66,12 +93,8 @@ exports.handleRequest = function(req, res, next) {
         throw new Error('No files received!');
     }
 
-    const mainFile = req.body.mainFile;
-    let files = req.body.files;
-
-    if(typeof files === 'string') {
-        files = JSON.parse(files);
-    }
+    const mainFile = req.body.mainFile,
+          files = req.body.files;
 
     compile(mainFile, files, res);
 };

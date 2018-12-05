@@ -13,7 +13,6 @@
     "babel-preset-env": "^1.7.0",
     "body-parser": "^1.18.3",
     "concat-with-sourcemaps": "^1.1.0",
-    "crypto": "^1.0.1",
     "express": "^4.16.4",
     "fs-extra": "^7.0.1",
     "node-sass": "^4.10.0",

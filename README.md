@@ -55,7 +55,7 @@ Expects:
     "mainFile" : "/path/to/main/file/as/it/is/in/files.scss",
     "files": {
         {
-            "file" : "/path/to/file.scss"
+            "file" : "/path/to/file.scss",
             "content" : "content-of-file"
         }
     }

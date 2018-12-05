@@ -1,7 +1,7 @@
 {
   "name": "fwcc-server",
   "repository": "https://github.com/frontend-workflow-cloud-compiler/server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "server.js",
   "license": "MIT",
   "contributors": [

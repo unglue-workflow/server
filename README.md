@@ -53,12 +53,12 @@ Expects:
 ```json
 {
     "mainFile" : "/path/to/main/file/as/it/is/in/files.scss",
-    "files": {
+    "files": [
         {
             "file" : "/path/to/file.scss",
             "content" : "content-of-file"
         }
-    }
+    ]
 }
 ```
 

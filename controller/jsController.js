@@ -1,6 +1,4 @@
-const fs = require('fs-extra'),
-      babelCore = require('babel-core'),
-      crypto = require('crypto'),
+const babelCore = require('babel-core'),
       uglifyJs = require('uglify-js');
 
 const browserlist = [
@@ -40,10 +38,13 @@ const concatJs = (files) => {
     return js;
 };
 
-const compile = (files, res) => {
+const compile = (files, res, options) => {
     let js = concatJs(files);
     js = babel(js);
-    js = uglify(js);
+
+    if(options.compress) {
+        js = uglify(js);
+    }
 
     res.json({
         js: js
@@ -56,7 +57,20 @@ exports.handleRequest = (req, res, next) => {
         throw new Error('No files received!');
     }
 
+    const options = {
+        compress: true,
+        maps: false
+    };
+
+    if(req.body.options) {
+        for (let key in req.body.options) {
+            if(typeof options[key] !== 'undefined') {
+                options[key] = req.body.options[key];
+            }
+        }
+    }
+
     const files = req.body.files;
 
-    compile(files, res);
+    compile(files, res, options);
 };

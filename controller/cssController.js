@@ -24,9 +24,15 @@ const compileSass = function(tmpDir, mainFile, options) {
 
 const compilePostCss = function(css, options) {
     let result;
+
+    let generateMap = false;
+    if(options.maps === true) {
+        generateMap = {inline: true};
+    }
+
     try {
         const postcssPlugins = [postcssAutoprefixer];
-        result = postcss(postcssPlugins).process(css, {map: {inline: options.maps}});
+        result = postcss(postcssPlugins).process(css, {map: generateMap});
     } catch(error) {
         // Remove tmpDir to keep the tmp dir clean
         fs.removeSync(tmpDir);

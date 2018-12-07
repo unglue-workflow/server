@@ -23,7 +23,8 @@
   },
   "scripts": {
     "unglue-server": "node ./server.js",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --config '{\"collectCoverage\": true}'"
   },
   "devDependencies": {
     "jest": "^23.6.0"

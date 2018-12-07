@@ -64,3 +64,45 @@ test('Test 3: Compile with compression & maps', () => {
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/js/expected-test-3.js`).toString());
     expect(typeof compiled.map).toBe("string");
 });
+
+test('Request handle function', () => {
+    const fakeReq = {
+        body: {}
+    };
+    const fakeRes = {
+        status: function() {},
+        json: function() {}
+    };
+
+    try {
+        jsController.handleRequest(fakeReq, fakeRes);
+    } catch(error) {
+        expect(error.toString()).toBe('Error: No distFile received!');
+    }
+
+    fakeReq.body.distFile = 'test.js';
+    try {
+        jsController.handleRequest(fakeReq, fakeRes);
+    } catch(error) {
+        expect(error.toString()).toBe('Error: No files received!');
+    }
+
+    fakeReq.body.files = [];
+    try {
+        jsController.handleRequest(fakeReq, fakeRes);
+    } catch(error) {
+        expect(error.toString()).toBe('Error: No files received!');
+    }
+
+    fakeReq.body.files = [
+        {
+            file: '/test/test.js',
+            code: 'console.log8"asd' // CSS with error
+        }
+    ];
+    try {
+        jsController.handleRequest(fakeReq, fakeRes);
+    } catch(error) {
+        expect(error.toString()).toBe('SyntaxError: unknown: Unterminated string constant (1:12)');
+    }
+});

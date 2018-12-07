@@ -99,7 +99,7 @@ exports.handleRequest = (req, res, next) => {
         throw new Error('No distFile received!');
     }
 
-    if(!req.body.files) {
+    if(!req.body.files || req.body.files && req.body.files.length <= 0) {
         res.status(400);
         throw new Error('No files received!');
     }

@@ -16,7 +16,7 @@ const compileSass = (distFile, mainFile, tmpDir, options) => {
     } catch(error) {
         // Remove tmpDir to keep the tmp dir clean
         fs.removeSync(tmpDir);
-        throw new Error(error.message);
+        throw new Error("An error occured during the sass render process: " + error.message.replace(tmpDir, ''));
     }
 
     return {
@@ -105,7 +105,7 @@ exports.handleRequest = (req, res) => {
         res.status(400);
         throw new Error('No mainFile received!');
     }
-    if(!req.body.files) {
+    if(!req.body.files || req.body.files && req.body.files.length <= 0) {
         res.status(400);
         throw new Error('No files received!');
     }

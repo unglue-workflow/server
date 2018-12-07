@@ -1,1 +1,0 @@
-{"version":3,"sources":["/resources/src/js/addFive.js","/resources/src/js/addTen.js","/resources/src/js/main.js"],"names":["addFive","x","addTen","console","log"],"mappings":"aAAA,IAAMA,QAAU,SAACC,GAAO,OAAOA,EAAI,GCA7BC,OAAS,SAACD,GAAO,OAAOA,EAAI,ICAlCE,QAAQC,IAAI,iBAAkBD,QAAQC,IAAIJ,QAAQ,IAAKG,QAAQC,IAAIF,OAAO","file":"expected-test-3.css"}

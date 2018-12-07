@@ -1,4 +1,4 @@
-# FWCC Server
+# Unglue Server
 
 The node server which processes the request.
 
@@ -6,13 +6,13 @@ The node server which processes the request.
 
 ### Node package
 
-`yarn add fwcc-server`
+`yarn add unglue-server`
 
 ### GIT
 
 Clone this repository:
 
-`git clone https://github.com/frontend-workflow-cloud-compiler/server.git fwcc-server/`
+`git clone https://github.com/unglue-workflow/server.git unglue-server/`
 
 Install node modules:
 
@@ -22,13 +22,13 @@ Install node modules:
 
 ### Node package
 
-`yarn --cwd node_modules/fwcc-server/ run start`
+`yarn --cwd node_modules/unglue-server/ run start`
 
 If you want to, you can add following code to your package.json to shorten the command to `yarn start`:
 
 ```json
 "scripts": {
-    "start": "yarn --cwd node_modules/fwcc-server/ run start"
+    "start": "yarn --cwd node_modules/unglue-server/ run start"
 }
 ```
 

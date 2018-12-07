@@ -82,7 +82,7 @@ const compile = (distFile, files, res, options) => {
 
     res.json({
         code: js.code,
-        map: js.map
+        map: options.maps ? js.map : false
     });
 };
 

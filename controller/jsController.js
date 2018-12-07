@@ -1,5 +1,8 @@
 const babelCore = require('babel-core'),
-      uglifyJs = require('uglify-js');
+      uglifyJs = require('uglify-js'),
+      concat = require('source-map-concat'),
+      createDummySourceMap = require('source-map-dummy');
+
 
 const browserlist = [
     "> 0.5%",
@@ -8,8 +11,10 @@ const browserlist = [
 ];
 
 const babel = (js) => {
-    let result = babelCore.transform(js, {
+    let result = babelCore.transform(js.code, {
         minified: false,
+        inputSourceMap: js.map,
+        sourceMaps: true,
         presets: [
             [
                 "env",
@@ -22,36 +27,67 @@ const babel = (js) => {
         ]
     });
 
-    return result.code;
+    return {
+        code: result.code,
+        map: result.map
+    };
 };
 
-const uglify = (js) => {
-    return uglifyJs.minify(js);
+const uglify = (js, distFile) => {
+    return uglifyJs.minify(js.code, {
+        sourceMap: {
+            filename: distFile,
+            url: `${distFile}.map`,
+            content: js.map
+        }
+    });
 };
 
 const concatJs = (files) => {
     let js = '';
-    for (let index in files) {
-        const file = files[index];
-        js += file.content;
-    }
-    return js;
+
+    files = files.map(function(file) {
+        return {
+            source: file.file,
+            code: file.content,
+            map: file.map ? file.map : false
+        }
+    });
+
+    files.forEach( function(file) {
+        if (!file.map) {
+            file.map = createDummySourceMap(file.code, {source: file.source, type: "js"});
+        }
+    })
+
+    const concatenated = concat(files);
+    const result = concatenated.toStringWithSourceMap();
+
+    return {
+        code: result.code,
+        map: result.map.toJSON()
+    };
 };
 
-const compile = (files, res, options) => {
-    let js = concatJs(files);
+const compile = (distFile, files, res, options) => {
+    let js = concatJs(files, 'main.js');
     js = babel(js);
 
     if(options.compress) {
-        js = uglify(js);
+        js = uglify(js, distFile);
     }
 
     res.json({
-        js: js
+        js: js.code,
+        map: js.map
     });
 };
 
 exports.handleRequest = (req, res, next) => {
+    if(!req.body.distFile) {
+        res.status(400);
+        throw new Error('No distFile received!');
+    }
     if(!req.body.files) {
         res.status(400);
         throw new Error('No files received!');
@@ -70,7 +106,5 @@ exports.handleRequest = (req, res, next) => {
         }
     }
 
-    const files = req.body.files;
-
-    compile(files, res, options);
+    compile(req.body.distFile, req.body.files, res, options);
 };

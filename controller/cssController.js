@@ -4,7 +4,7 @@ const fs = require('fs-extra'),
       postcssAutoprefixer = require('autoprefixer'),
       crypto = require('crypto');
 
-const compileSass = function(tmpDir, mainFile, options) {
+const compileSass = (tmpDir, mainFile, options) => {
     let result;
     try {
         result = sass.renderSync({
@@ -22,7 +22,7 @@ const compileSass = function(tmpDir, mainFile, options) {
     return result.css.toString('utf8');
 };
 
-const compilePostCss = function(css, options) {
+const compilePostCss = (css, options) => {
     let result;
 
     let generateMap = false;
@@ -41,9 +41,8 @@ const compilePostCss = function(css, options) {
     return result.css;
 };
 
-const writeFiles = function(files, tmpDir) {
-    for (let index in files) {
-        const file = files[index];
+const writeFiles = (files, tmpDir) => {
+    files.forEach( function(file) {
         const filePath = file.file;
         const fileContent = file.content;
 
@@ -59,19 +58,19 @@ const writeFiles = function(files, tmpDir) {
             throw new Error(error.message);
         }
 
-        console.info("Writing file: " + filePath);
-    }
+        console.info(`Writing file: ${filePath}`);
+    });
 
     return true;
 }
 
-const compile = function(mainFile, files, res, options) {
+const compile = (mainFile, files, res, options) => {
     // Generate hash based on mainFile and files
     // Replace hash through identifier sent by client
     const hash = crypto.createHash('sha1').update(mainFile + JSON.stringify(files)).digest("hex");
-    const tmpDir = appRoot + '/tmp/scss/' + hash;
+    const tmpDir = `${appRoot}/tmp/scss/${hash}`;
 
-    console.info("Temp dir: " + tmpDir);
+    console.info(`Temp dir: ${tmpDir}`);
 
     // Write files to disk
     writeFiles(files, tmpDir);
@@ -81,7 +80,7 @@ const compile = function(mainFile, files, res, options) {
     css = compilePostCss(css, options);
     
     // Remove temporary files
-    console.info("Removing " + tmpDir);
+    console.info(`Removing ${tmpDir}`);
     fs.removeSync(tmpDir);
 
     res.json({
@@ -112,8 +111,5 @@ exports.handleRequest = function(req, res, next) {
         }
     }
 
-    const mainFile = req.body.mainFile,
-          files = req.body.files;
-
-    compile(mainFile, files, res, options);
+    compile(req.body.mainFile, req.body.files, res, options);
 };

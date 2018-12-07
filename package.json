@@ -17,6 +17,8 @@
     "fs-extra": "^7.0.1",
     "node-sass": "^4.10.0",
     "postcss": "^7.0.6",
+    "source-map-concat": "^1.0.1",
+    "source-map-dummy": "^1.0.0",
     "uglify-js": "^3.4.9"
   },
   "scripts": {

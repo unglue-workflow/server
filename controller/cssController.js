@@ -96,7 +96,7 @@ const compile = (distFile, mainFile, files, options) => {
 
 exports.compile = compile;
 
-exports.handleRequest = function(req, res, next) {
+exports.handleRequest = (req, res) => {
     if(!req.body.distFile) {
         res.status(400);
         throw new Error('No distFile received!');
@@ -116,11 +116,7 @@ exports.handleRequest = function(req, res, next) {
     };
 
     if(req.body.options) {
-        for (let key in req.body.options) {
-            if(typeof options[key] !== 'undefined') {
-                options[key] = req.body.options[key];
-            }
-        }
+        options = { ...options, ...req.body.options };
     }
 
     const compiledData = compile(req.body.distFile, req.body.mainFile, req.body.files, options);

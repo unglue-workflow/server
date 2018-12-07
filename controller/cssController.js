@@ -4,14 +4,14 @@ const fs = require('fs-extra'),
       postcssAutoprefixer = require('autoprefixer'),
       crypto = require('crypto');
 
-const compileSass = (tmpDir, mainFile, options) => {
+const compileSass = (distFile, mainFile, tmpDir, options) => {
     let result;
     try {
         result = sass.renderSync({
             file: tmpDir + mainFile,
             outputStyle: options.compress ? 'compressed' : 'expanded',
             sourceMap: options.maps,
-            sourceMapEmbed: options.maps
+            outFile: distFile
         });
     } catch(error) {
         // Remove tmpDir to keep the tmp dir clean
@@ -19,32 +19,44 @@ const compileSass = (tmpDir, mainFile, options) => {
         throw new Error(error.message);
     }
 
-    return result.css.toString('utf8');
+    return {
+        code: result.css.toString('utf8'),
+        map: options.maps ? result.map.toString('utf8') : false
+    };
 };
 
-const compilePostCss = (css, options) => {
+const compilePostCss = (css, distFile, mainFile, options) => {
     let result;
 
-    let generateMap = false;
+    let processOptions = {};
     if(options.maps === true) {
-        generateMap = {inline: true};
+        processOptions = {
+            from: mainFile,
+            to: distFile,
+            prev: css.map,
+            map: { inline: false }
+        };
     }
 
     try {
         const postcssPlugins = [postcssAutoprefixer];
-        result = postcss(postcssPlugins).process(css, {map: generateMap});
+        result = postcss(postcssPlugins).process(css.code, processOptions);
     } catch(error) {
         // Remove tmpDir to keep the tmp dir clean
         fs.removeSync(tmpDir);
         throw new Error(error.message);
     }
-    return result.css;
+
+    return {
+        code: result.css,
+        map: options.maps ? result.map.toString() : false
+    };
 };
 
 const writeFiles = (files, tmpDir) => {
     files.forEach( function(file) {
         const filePath = file.file;
-        const fileContent = file.content;
+        const fileCode = file.code;
 
         // Get folder path from filepath
         let folderPath = filePath.split('/');
@@ -53,7 +65,7 @@ const writeFiles = (files, tmpDir) => {
 
         try {
             fs.ensureDirSync(tmpDir + '/' + folderPath);
-            fs.writeFileSync(tmpDir + filePath, fileContent);
+            fs.writeFileSync(tmpDir + filePath, fileCode);
         } catch(error) {
             throw new Error(error.message);
         }
@@ -64,31 +76,31 @@ const writeFiles = (files, tmpDir) => {
     return true;
 }
 
-const compile = (mainFile, files, res, options) => {
-    // Generate hash based on mainFile and files
-    // Replace hash through identifier sent by client
-    const hash = crypto.createHash('sha1').update(mainFile + JSON.stringify(files)).digest("hex");
-    const tmpDir = `${appRoot}/tmp/scss/${hash}`;
-
+const compile = (distFile, mainFile, files, options) => {
+    const tmpDir = `${appRoot}/tmp/scss/${Date.now()}`;
     console.info(`Temp dir: ${tmpDir}`);
 
     // Write files to disk
     writeFiles(files, tmpDir);
 
     let css;
-    css = compileSass(tmpDir, mainFile, options);
-    css = compilePostCss(css, options);
+    css = compileSass(distFile, mainFile, tmpDir, options);
+    css = compilePostCss(css, distFile, mainFile, options);
     
     // Remove temporary files
     console.info(`Removing ${tmpDir}`);
     fs.removeSync(tmpDir);
 
-    res.json({
-        css: css
-    });
+    return css;
 };
 
+exports.compile = compile;
+
 exports.handleRequest = function(req, res, next) {
+    if(!req.body.distFile) {
+        res.status(400);
+        throw new Error('No distFile received!');
+    }
     if(!req.body.mainFile) {
         res.status(400);
         throw new Error('No mainFile received!');
@@ -111,5 +123,7 @@ exports.handleRequest = function(req, res, next) {
         }
     }
 
-    compile(req.body.mainFile, req.body.files, res, options);
+    const compiledData = compile(req.body.distFile, req.body.mainFile, req.body.files, options);
+
+    res.json(compiledData);
 };

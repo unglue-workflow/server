@@ -10,11 +10,11 @@ const browserlist = [
     "IE 10"
 ];
 
-const babel = (js) => {
+const babel = (js, options) => {
     let result = babelCore.transform(js.code, {
         minified: false,
-        inputSourceMap: js.map.toJSON(),
-        sourceMaps: true,
+        inputSourceMap: options.maps ? js.map.toJSON() : false,
+        sourceMaps: options.maps,
         presets: [
             [
                 "env",
@@ -29,23 +29,27 @@ const babel = (js) => {
 
     return {
         code: result.code,
-        map: result.map
+        map: options.maps ? result.map : false
     };
 };
 
-const uglify = (js, distFile) => {
-    return uglifyJs.minify(js.code, {
-        sourceMap: {
-            filename: distFile,
-            url: `${distFile}.map`,
-            content: js.map
-        }
-    });
+const uglify = (js, distFile, options) => {
+    let compileOptions = {};
+    
+    if(options.maps) {
+        compileOptions = {
+            sourceMap: {
+                filename: distFile,
+                url: `${distFile}.map`,
+                content: js.map
+            }
+        };
+    }
+
+    return uglifyJs.minify(js.code, compileOptions);
 };
 
 const concatJs = (files) => {
-    let js = '';
-
     files = files.map(function(file) {
         return {
             source: file.file,
@@ -69,22 +73,24 @@ const concatJs = (files) => {
     };
 };
 
-const compile = (distFile, files, res, options) => {
+const compile = (distFile, files, options) => {
     let js = concatJs(files, 'main.js');
-    js = babel(js);
+    js = babel(js, options);
 
     if(options.compress) {
-        js = uglify(js, distFile);
-    } else {
+        js = uglify(js, distFile, options);
+    } else if(options.maps) {
         js.code += `\n//# sourceMappingURL=${distFile}.map`;
         js.map = JSON.stringify(js.map);
     }
 
-    res.json({
+    return {
         code: js.code,
         map: options.maps ? js.map : false
-    });
+    };
 };
+
+exports.compile = compile;
 
 exports.handleRequest = (req, res, next) => {
     if(!req.body.distFile) {
@@ -109,5 +115,7 @@ exports.handleRequest = (req, res, next) => {
         }
     }
 
-    compile(req.body.distFile, req.body.files, res, options);
+    const compiledData = compile(req.body.distFile, req.body.files, options);
+
+    return res.json(compiledData);
 };

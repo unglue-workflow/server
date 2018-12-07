@@ -1,0 +1,2 @@
+.component1{color:red;background-color:blue;transition:.25s ease-in-out color}.component2{-webkit-animation:comp2-anim 2s ease;animation:comp2-anim 2s ease}@-webkit-keyframes comp2-anim{0%{color:red}to{color:blue}}@keyframes comp2-anim{0%{color:red}to{color:blue}}
+/*# sourceMappingURL=expected-test-3.css.map */

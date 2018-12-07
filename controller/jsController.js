@@ -13,7 +13,7 @@ const browserlist = [
 const babel = (js) => {
     let result = babelCore.transform(js.code, {
         minified: false,
-        inputSourceMap: js.map,
+        inputSourceMap: js.map.toJSON(),
         sourceMaps: true,
         presets: [
             [
@@ -49,7 +49,7 @@ const concatJs = (files) => {
     files = files.map(function(file) {
         return {
             source: file.file,
-            code: file.content,
+            code: file.code,
             map: file.map ? file.map : false
         }
     });
@@ -65,7 +65,7 @@ const concatJs = (files) => {
 
     return {
         code: result.code,
-        map: result.map.toJSON()
+        map: result.map
     };
 };
 
@@ -75,10 +75,13 @@ const compile = (distFile, files, res, options) => {
 
     if(options.compress) {
         js = uglify(js, distFile);
+    } else {
+        js.code += `\n//# sourceMappingURL=${distFile}.map`;
+        js.map = JSON.stringify(js.map);
     }
 
     res.json({
-        js: js.code,
+        code: js.code,
         map: js.map
     });
 };

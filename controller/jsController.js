@@ -3,117 +3,100 @@ const babelCore = require('babel-core'),
       concat = require('source-map-concat'),
       createDummySourceMap = require('source-map-dummy');
 
+const BaseController = require('./BaseController');
 
-const browserlist = [
-    "> 0.5%",
-    "last 2 versions",
-    "IE 10"
-];
+class JsController extends BaseController {
 
-const babel = (js, options) => {
-    let result = babelCore.transform(js.code, {
-        minified: false,
-        inputSourceMap: options.maps ? js.map.toJSON() : false,
-        sourceMaps: options.maps,
-        presets: [
-            [
-                "env",
-                {
-                    targets: {
-                        browsers: browserlist
-                    }
-                }
-            ]
-        ]
-    });
+    constructor(req, res) {
+        super(req, res, ['distFile', 'files']);
 
-    return {
-        code: result.code,
-        map: options.maps ? result.map : false
-    };
-};
+        this.browserlist = [
+            "> 0.5%",
+            "last 2 versions",
+            "IE 10"
+        ];
+    }
 
-const uglify = (js, distFile, options) => {
-    let compileOptions = {};
+    compile() {
+        let js = this.concatJs();
+        js = this.babel(js);
     
-    if(options.maps) {
-        compileOptions = {
-            sourceMap: {
-                filename: distFile,
-                url: `${distFile}.map`,
-                content: js.map
-            }
+        if(this.options.compress) {
+            js = this.uglify(js);
+        } else if(this.options.maps) {
+            js.code += `\n//# sourceMappingURL=${this.data.distFile}.map`;
+            js.map = JSON.stringify(js.map);
+        }
+    
+        return {
+            code: js.code,
+            map: this.options.maps ? js.map : false
         };
     }
 
-    return uglifyJs.minify(js.code, compileOptions);
-};
-
-const concatJs = (files) => {
-    files = files.map(function(file) {
-        return {
-            source: file.file,
-            code: file.code,
-            map: file.map ? file.map : false
-        }
-    });
-
-    files.forEach( function(file) {
-        if (!file.map) {
-            file.map = createDummySourceMap(file.code, {source: file.source, type: "js"});
-        }
-    })
-
-    const concatenated = concat(files);
-    const result = concatenated.toStringWithSourceMap();
-
-    return {
-        code: result.code,
-        map: result.map
-    };
-};
-
-const compile = (distFile, files, options) => {
-    let js = concatJs(files, 'main.js');
-    js = babel(js, options);
-
-    if(options.compress) {
-        js = uglify(js, distFile, options);
-    } else if(options.maps) {
-        js.code += `\n//# sourceMappingURL=${distFile}.map`;
-        js.map = JSON.stringify(js.map);
-    }
-
-    return {
-        code: js.code,
-        map: options.maps ? js.map : false
-    };
-};
-
-exports.compile = compile;
-
-exports.handleRequest = (req, res, next) => {
+    concatJs() {
+        const files = this.data.files.map(function(file) {
+            return {
+                source: file.file,
+                code: file.code,
+                map: file.map ? file.map : false
+            }
+        });
     
-    if(!req.body.distFile) {
-        res.status(400);
-        throw new Error('No distFile received!');
+        files.forEach( function(file) {
+            if (!file.map) {
+                file.map = createDummySourceMap(file.code, {source: file.source, type: "js"});
+            }
+        })
+    
+        const concatenated = concat(files);
+        const result = concatenated.toStringWithSourceMap();
+    
+        return {
+            code: result.code,
+            map: result.map
+        };
     }
 
-    if(!req.body.files || req.body.files && req.body.files.length <= 0) {
-        res.status(400);
-        throw new Error('No files received!');
+    babel(js) {
+        let result = babelCore.transform(js.code, {
+            minified: false,
+            inputSourceMap: this.options.maps ? js.map.toJSON() : false,
+            sourceMaps: this.options.maps,
+            presets: [
+                [
+                    "env",
+                    {
+                        targets: {
+                            browsers: this.browserlist
+                        }
+                    }
+                ]
+            ]
+        });
+    
+        return {
+            code: result.code,
+            map: this.options.maps ? result.map : false
+        };
     }
 
-    const options = {
-        compress: true,
-        maps: false
-    };
+    uglify(js) {
+        let compileOptions = {};
+    
+        if(this.options.maps) {
+            compileOptions = {
+                sourceMap: {
+                    filename: this.data.distFile,
+                    url: `${this.data.distFile}.map`,
+                    content: js.map
+                }
+            };
+        }
 
-    if(req.body.options) {
-        options = { ...options, ...req.body.options };
+        return uglifyJs.minify(js.code, compileOptions);
     }
 
-    const compiledData = compile(req.body.distFile, req.body.files, options);
+}
 
-    return res.json(compiledData);
-};
+module.exports = JsController;

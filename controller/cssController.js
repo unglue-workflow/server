@@ -1,125 +1,104 @@
 const fs = require('fs-extra'),
       sass = require('node-sass'),
       postcss = require('postcss'),
-      postcssAutoprefixer = require('autoprefixer'),
-      crypto = require('crypto');
+      postcssAutoprefixer = require('autoprefixer');
 
-const compileSass = (distFile, mainFile, tmpDir, options) => {
-    let result;
-    try {
-        result = sass.renderSync({
-            file: tmpDir + mainFile,
-            outputStyle: options.compress ? 'compressed' : 'expanded',
-            sourceMap: options.maps,
-            outFile: distFile
-        });
-    } catch(error) {
-        // Remove tmpDir to keep the tmp dir clean
-        fs.removeSync(tmpDir);
-        throw new Error("An error occured during the sass render process: " + error.message.replace(tmpDir, ''));
+const BaseController = require('./BaseController');
+
+class CssController extends BaseController {
+
+    constructor(req, res) {
+        super(req, res, ['distFile', 'mainFile', 'files']);
+
+        this.tmpDir = `${appRoot}/tmp/scss/${Date.now()}`;
+        console.info(`Temp dir: ${this.tmpDir}`);
     }
 
-    return {
-        code: result.css.toString('utf8'),
-        map: options.maps ? result.map.toString('utf8') : false
-    };
-};
+    compile() {
+        this.writeFiles();
+        let css = this.sass();
+        css = this.postCss(css);
 
-const compilePostCss = (css, distFile, mainFile, options) => {
-    let result;
+        return css;
+    }
 
-    let processOptions = {};
-    if(options.maps === true) {
-        processOptions = {
-            from: mainFile,
-            to: distFile,
-            prev: css.map,
-            map: { inline: false }
+    writeFiles() {
+        const self = this;
+        this.data.files.forEach( function(file) {
+            const filePath = file.file;
+            const fileCode = file.code;
+    
+            // Get folder path from filepath
+            let folderPath = filePath.split('/');
+            folderPath.pop();
+            folderPath = folderPath.join('/');
+    
+            try {
+                fs.ensureDirSync(self.tmpDir + '/' + folderPath);
+                fs.writeFileSync(self.tmpDir + filePath, fileCode);
+            } catch(error) {
+                throw new Error(error.message);
+            }
+    
+            console.info(`Writing file: ${filePath}`);
+        });
+    
+        return true;
+    }
+
+    removeFiles() {
+        console.info(`Removing ${this.tmpDir}`);
+        fs.removeSync(this.tmpDir);
+    }
+
+    sass() {
+        let result;
+        try {
+            result = sass.renderSync({
+                file: this.tmpDir + this.data.mainFile,
+                outputStyle: this.options.compress ? 'compressed' : 'expanded',
+                sourceMap: this.options.maps,
+                outFile: this.data.distFile
+            });
+        } catch(error) {
+            // Remove tmpDir to keep the tmp dir clean
+            this.removeFiles();
+            throw new Error("An error occured during the sass render process: " + error.message.replace(this.tmpDir, ''));
+        }
+    
+        return {
+            code: result.css.toString('utf8'),
+            map: this.options.maps ? result.map.toString('utf8') : false
         };
     }
 
-    try {
-        const postcssPlugins = [postcssAutoprefixer];
-        result = postcss(postcssPlugins).process(css.code, processOptions);
-    } catch(error) {
-        // Remove tmpDir to keep the tmp dir clean
-        fs.removeSync(tmpDir);
-        throw new Error(error.message);
-    }
+    postCss(css) {
+        let result;
 
-    return {
-        code: result.css,
-        map: options.maps ? result.map.toString() : false
-    };
-};
-
-const writeFiles = (files, tmpDir) => {
-    files.forEach( function(file) {
-        const filePath = file.file;
-        const fileCode = file.code;
-
-        // Get folder path from filepath
-        let folderPath = filePath.split('/');
-        folderPath.pop();
-        folderPath = folderPath.join('/');
-
+        let processOptions = {};
+        if(this.options.maps === true) {
+            processOptions = {
+                from: this.data.mainFile,
+                to: this.data.distFile,
+                prev: css.map,
+                map: { inline: false }
+            };
+        }
+    
         try {
-            fs.ensureDirSync(tmpDir + '/' + folderPath);
-            fs.writeFileSync(tmpDir + filePath, fileCode);
+            result = postcss([postcssAutoprefixer]).process(css.code, processOptions);
         } catch(error) {
+            // Remove tmpDir to keep the tmp dir clean
+            this.removeFiles();
             throw new Error(error.message);
         }
+    
+        return {
+            code: result.css,
+            map: this.options.maps ? result.map.toString() : false
+        };
+    }
 
-        console.info(`Writing file: ${filePath}`);
-    });
-
-    return true;
 }
 
-const compile = (distFile, mainFile, files, options) => {
-    const tmpDir = `${appRoot}/tmp/scss/${Date.now()}`;
-    console.info(`Temp dir: ${tmpDir}`);
-
-    // Write files to disk
-    writeFiles(files, tmpDir);
-
-    let css;
-    css = compileSass(distFile, mainFile, tmpDir, options);
-    css = compilePostCss(css, distFile, mainFile, options);
-    
-    // Remove temporary files
-    console.info(`Removing ${tmpDir}`);
-    fs.removeSync(tmpDir);
-
-    return css;
-};
-
-exports.compile = compile;
-
-exports.handleRequest = (req, res) => {
-    if(!req.body.distFile) {
-        res.status(400);
-        throw new Error('No distFile received!');
-    }
-    if(!req.body.mainFile) {
-        res.status(400);
-        throw new Error('No mainFile received!');
-    }
-    if(!req.body.files || req.body.files && req.body.files.length <= 0) {
-        res.status(400);
-        throw new Error('No files received!');
-    }
-
-    const options = {
-        compress: true,
-        maps: false
-    };
-
-    if(req.body.options) {
-        options = { ...options, ...req.body.options };
-    }
-
-    const compiledData = compile(req.body.distFile, req.body.mainFile, req.body.files, options);
-
-    res.json(compiledData);
-};
+module.exports = CssController;

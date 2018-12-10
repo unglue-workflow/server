@@ -1,6 +1,9 @@
-const path = require('path'),
+const http = require('http'),
+      https = require('https'),
+      path = require('path'),
       express = require('express'),
-      bodyParser = require('body-parser');
+      bodyParser = require('body-parser'),
+      argv = require('yargs').argv;
 
 // Define "appRoot" in global namespace
 global.appRoot = path.resolve(__dirname);
@@ -27,6 +30,15 @@ app.use(function(error, req, res, next) {
     res.json({ message: error.message });
 });
 
-const server = app.listen(3000, function () {
-    console.log("Server running on port " + server.address().port);
+const httpServer = http.createServer(app).listen(argv['http'] ? argv['http'] : 3000, function() {
+    console.log("Server running on port " + httpServer.address().port);
 });
+
+
+if(argv['https']) {
+    const keyCert = {};
+
+    const httpsServer = https.createServer(keyCert, app).listen(argv['https'], function() {
+        console.log("Server running on port " + httpsServer.address().port);
+    });
+}

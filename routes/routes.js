@@ -1,12 +1,8 @@
 // App router
 const router = function (app) {
-    const CssController = require('../controller/CssController');
-    const JsController = require('../controller/JsController');
-    const SvgSpriteController = require('../controller/SvgSpriteController');
-
     const compile = (controllerName, req, res) => {
         let Controller = require('../controller/' + controllerName);
-        let Controller = new Controller(req, res);
+        Controller = new Controller(req, res);
         return Controller.compile();
     };
 

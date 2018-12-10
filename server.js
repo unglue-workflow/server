@@ -3,7 +3,8 @@ const http = require('http'),
       path = require('path'),
       express = require('express'),
       bodyParser = require('body-parser'),
-      argv = require('yargs').argv;
+      argv = require('yargs').argv,
+      morgan = require('morgan');
 
 // Define "appRoot" in global namespace
 global.appRoot = path.resolve(__dirname);
@@ -18,8 +19,16 @@ const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
+// Log requests
+app.use(morgan(':method :url :response-time ms'));
+
 // Router
 routes(app);
+
+// Don't print console info if not verbose
+if(!argv['v'] && !argv['verbose']) {
+    console.info = function() {};
+}
 
 // Custom error handler
 app.use(function(error, req, res, next) {
@@ -30,15 +39,6 @@ app.use(function(error, req, res, next) {
     res.json({ message: error.message });
 });
 
-const httpServer = http.createServer(app).listen(argv['http'] ? argv['http'] : 3000, function() {
-    console.log("Server running on port " + httpServer.address().port);
+const server = http.createServer(app).listen(argv['port'] ? argv['port'] : 3000, function() {
+    console.log("Server running on port " + server.address().port);
 });
-
-
-if(argv['https']) {
-    const keyCert = {};
-
-    const httpsServer = https.createServer(keyCert, app).listen(argv['https'], function() {
-        console.log("Server running on port " + httpsServer.address().port);
-    });
-}

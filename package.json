@@ -15,6 +15,7 @@
     "concat-with-sourcemaps": "^1.1.0",
     "express": "^4.16.4",
     "fs-extra": "^7.0.1",
+    "morgan": "^1.9.1",
     "node-sass": "^4.10.0",
     "postcss": "^7.0.6",
     "source-map-concat": "^1.0.1",

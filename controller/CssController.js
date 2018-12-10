@@ -11,7 +11,7 @@ class CssController extends BaseController {
         super(req, res, ['distFile', 'mainFile', 'files']);
 
         this.tmpDir = `${appRoot}/tmp/scss/${Date.now()}`;
-        console.info(`Temp dir: ${this.tmpDir}`);
+        console.info("CSS Task", `Temp dir: ${this.tmpDir}`, `Compiling ${this.data.files.length} files.`);
     }
 
     compile() {
@@ -39,8 +39,6 @@ class CssController extends BaseController {
             } catch(error) {
                 throw new Error(error.message);
             }
-    
-            console.info(`Writing file: ${filePath}`);
         });
     
         return true;
@@ -93,6 +91,8 @@ class CssController extends BaseController {
             throw new Error(error.message);
         }
     
+        this.removeFiles();
+
         return {
             code: result.css,
             map: this.options.maps ? result.map.toString() : false

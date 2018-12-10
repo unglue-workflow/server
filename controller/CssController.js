@@ -56,17 +56,28 @@ class CssController extends BaseController {
                 file: this.tmpDir + this.data.mainFile,
                 outputStyle: this.options.compress ? 'compressed' : 'expanded',
                 sourceMap: this.options.maps,
-                outFile: this.data.distFile
+                outFile: this.data.distFile,
+                sourceMapContents: true
             });
         } catch(error) {
             // Remove tmpDir to keep the tmp dir clean
             this.removeFiles();
             throw new Error("An error occured during the sass render process: " + error.message.replace(this.tmpDir, ''));
         }
+
+        // Remove the tmpDir path from all strings
+        if(this.options.maps && result.map) {
+            // Remove appRoot from tmpDir because that's the path that node-sass uses
+            const tmpDirPathFromAppRoot = this.tmpDir.replace(global.appRoot + '/', '');
+            result.map = result.map.toString('utf8');
+            result.map = result.map.replace(new RegExp(tmpDirPathFromAppRoot, 'g'), '');
+        } else {
+            result.map = false;
+        }
     
         return {
             code: result.css.toString('utf8'),
-            map: this.options.maps ? result.map.toString('utf8') : false
+            map: result.map
         };
     }
 

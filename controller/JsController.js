@@ -1,7 +1,6 @@
 const babelCore = require('babel-core'),
       uglifyJs = require('uglify-js'),
-      concat = require('source-map-concat'),
-      createDummySourceMap = require('source-map-dummy');
+      Concat = require('../lib/Concat');
 
 const BaseController = require('./BaseController');
 
@@ -27,7 +26,7 @@ class JsController extends BaseController {
             js.code += `\n//# sourceMappingURL=${this.data.distFile}.map`;
             js.map = JSON.stringify(js.map);
         }
-    
+
         return {
             code: js.code,
             map: this.options.maps ? js.map : false
@@ -35,33 +34,22 @@ class JsController extends BaseController {
     }
 
     concatJs() {
-        const files = this.data.files.map(function(file) {
-            return {
-                source: file.file,
-                code: file.code,
-                map: file.map ? file.map : false
-            }
+        const concat = new Concat(this.options.maps, this.data.distFile);
+
+        this.data.files.forEach( (file) => {
+            concat.add(file.file, file.code);
         });
     
-        files.forEach( function(file) {
-            if (!file.map) {
-                file.map = createDummySourceMap(file.code, {source: file.source, type: "js"});
-            }
-        })
-    
-        const concatenated = concat(files);
-        const result = concatenated.toStringWithSourceMap();
-    
         return {
-            code: result.code,
-            map: result.map
+            code: concat.content.toString(),
+            map: concat.sourceMap
         };
     }
 
     babel(js) {
         let result = babelCore.transform(js.code, {
             minified: false,
-            inputSourceMap: this.options.maps ? js.map.toJSON() : false,
+            inputSourceMap: this.options.maps ? JSON.parse(js.map) : false,
             sourceMaps: this.options.maps,
             presets: [
                 [

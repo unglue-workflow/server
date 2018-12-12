@@ -39,7 +39,6 @@ test('Test 1: Compile without compression & maps', () => {
     const compiled = controller.compile();
     
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/css/expected-test-1.css`).toString());
-    expect(compiled.map).toBe(false);
 });
 
 test('Test 2: Compile with compression but without maps', () => {
@@ -49,7 +48,6 @@ test('Test 2: Compile with compression but without maps', () => {
     const compiled = controller.compile();
     
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/css/expected-test-2.css`).toString());
-    expect(compiled.map).toBe(false);
 });
 
 test('Test 3: Compile with compression & maps', () => {    
@@ -59,7 +57,6 @@ test('Test 3: Compile with compression & maps', () => {
 
     const controller = new CssController(fakeReq, fakeRes);
     const compiled = controller.compile();
-    
+
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/css/expected-test-3.css`).toString());
-    expect(typeof compiled.map).toBe("string");
 });

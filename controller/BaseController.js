@@ -27,6 +27,15 @@ class BaseController {
 
         this.data[param] = this.req.body[param];
     }
+    
+    getSourceMapComment(jsonMap, multiline = true) {
+        const startTag = multiline ? '/*# ' : '//# ';
+        const endTag = multiline ? ' */' : '';
+        for(let i = 0; i < jsonMap.sources.length; i++) {
+            jsonMap.sources[i] = jsonMap.sources[i].split(this.tmpDirStamp).pop();
+        }
+        return `${startTag}sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(jsonMap)).toString('base64')}${endTag}`;
+    }
 
 }
 

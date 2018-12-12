@@ -38,7 +38,6 @@ test('Test 1: Compile without compression & maps', () => {
     const compiled = controller.compile();
     
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/js/expected-test-1.js`).toString());
-    expect(compiled.map).toBe(false);
 });
 
 test('Test 2: Compile with compression but without maps', () => {
@@ -48,7 +47,6 @@ test('Test 2: Compile with compression but without maps', () => {
     const compiled = controller.compile();
     
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/js/expected-test-2.js`).toString());
-    expect(compiled.map).toBe(false);
 });
 
 test('Test 3: Compile with compression & maps', () => {    
@@ -60,5 +58,4 @@ test('Test 3: Compile with compression & maps', () => {
     const compiled = controller.compile();
     
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/js/expected-test-3.js`).toString());
-    expect(typeof compiled.map).toBe("string");
 });

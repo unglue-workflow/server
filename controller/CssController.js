@@ -1,8 +1,7 @@
 const fs = require('fs-extra'),
       sass = require('node-sass'),
       postcss = require('postcss'),
-      postcssAutoprefixer = require('autoprefixer'),
-      convertSourceMap = require('convert-source-map');
+      postcssAutoprefixer = require('autoprefixer');
 
 const BaseController = require('./BaseController');
 
@@ -34,7 +33,7 @@ class CssController extends BaseController {
             let folderPath = filePath.split('/');
             folderPath.pop();
             folderPath = folderPath.join('/');
-    
+
             try {
                 fs.ensureDirSync(self.tmpDir + '/' + folderPath);
                 fs.writeFileSync(self.tmpDir + filePath, fileCode);
@@ -58,7 +57,7 @@ class CssController extends BaseController {
                 file: this.tmpDir + this.data.mainFile,
                 outputStyle: this.options.compress ? 'compressed' : 'expanded',
                 sourceMap: this.options.maps,
-                outFile: this.data.mainFile,
+                outFile: this.data.distFile,
                 sourceMapContents: this.options.maps,
                 sourceMapEmbed: this.options.maps
             });
@@ -68,12 +67,14 @@ class CssController extends BaseController {
             throw new Error("An error occured during the sass render process: " + error.message.replace(this.tmpDir, ''));
         }
 
+        let code = result.css.toString('utf8');
         if(this.options.maps && result.map) {
-            result.code += this.getSourceMapComment(JSON.parse(result.map));
+            code = this.removeSourceMapComment(code);
+            code += this.getSourceMapComment(JSON.parse(result.map));
         }
     
         return {
-            code: result.css.toString('utf8')
+            code: code
         };
     }
 
@@ -83,7 +84,8 @@ class CssController extends BaseController {
         let processOptions = {};
         if(this.options.maps) {
             processOptions = {
-                map: { inline: false }
+                map: { inline: false },
+                to: this.data.distFile
             };
         }
     
@@ -97,7 +99,7 @@ class CssController extends BaseController {
 
         let code = result.css;
         if(this.options.maps && result.map) {
-            code = code.replace('/*# sourceMappingURL=to.css.map */', '');
+            code = this.removeSourceMapComment(code);
             code += this.getSourceMapComment(result.map.toJSON());
         }
     

@@ -22,7 +22,14 @@ class JsController extends BaseController {
 
         if(this.options.compress) {
             js = this.uglify(js);
-        } else if(this.options.maps) {
+        }
+        
+        if(this.options.maps && js.map) {
+            if(typeof js.map === 'string') {
+                js.map = JSON.parse(js.map);
+            }
+
+            js.code = this.removeSourceMapComment(js.code, false);
             js.code += this.getSourceMapComment(js.map, false);
         }
 
@@ -48,7 +55,7 @@ class JsController extends BaseController {
         let result = babelCore.transform(js.code, {
             minified: false,
             inputSourceMap: this.options.maps ? JSON.parse(js.map) : false,
-            sourceMaps: this.options.maps ? 'inline' : false,
+            sourceMaps: this.options.maps,
             presets: [
                 [
                     "env",
@@ -74,7 +81,7 @@ class JsController extends BaseController {
             compileOptions = {
                 sourceMap: {
                     filename: this.data.distFile,
-                    url: 'inline',
+                    url: this.data.distFile + '.map',
                     content: js.map
                 }
             };

@@ -1,7 +1,7 @@
 const fs = require('fs-extra'),
-      sass = require('node-sass'),
-      postcss = require('postcss'),
-      postcssAutoprefixer = require('autoprefixer');
+    sass = require('node-sass'),
+    postcss = require('postcss'),
+    postcssAutoprefixer = require('autoprefixer');
 
 const BaseController = require('./BaseController');
 
@@ -25,10 +25,10 @@ class CssController extends BaseController {
 
     writeFiles() {
         const self = this;
-        this.data.files.forEach( function(file) {
+        this.data.files.forEach(function (file) {
             const filePath = file.file;
             const fileCode = file.code;
-    
+
             // Get folder path from filepath
             let folderPath = filePath.split('/');
             folderPath.pop();
@@ -37,11 +37,11 @@ class CssController extends BaseController {
             try {
                 fs.ensureDirSync(self.tmpDir + '/' + folderPath);
                 fs.writeFileSync(self.tmpDir + filePath, fileCode);
-            } catch(error) {
+            } catch (error) {
                 throw new Error(error.message);
             }
         });
-    
+
         return true;
     }
 
@@ -61,18 +61,24 @@ class CssController extends BaseController {
                 sourceMapContents: this.options.maps,
                 sourceMapEmbed: this.options.maps
             });
-        } catch(error) {
+        } catch (error) {
             // Remove tmpDir to keep the tmp dir clean
             this.removeFiles();
-            throw new Error("An error occured during the sass render process: " + error.message.replace(this.tmpDir, ''));
+
+            let file = this.removeTmpDir(error.file);
+            file = this.getRelativePath(file);
+
+            let message = 'SCSS Error:';
+            message += ` ${error.message} on line ${error.line}:${error.column > 1 ? error.column : ''} in ${file}`;
+            throw new Error(message);
         }
 
         let code = result.css.toString('utf8');
-        if(this.options.maps && result.map) {
+        if (this.options.maps && result.map) {
             code = this.removeSourceMapComment(code);
             code += this.getSourceMapComment(JSON.parse(result.map));
         }
-    
+
         return {
             code: code
         };
@@ -82,27 +88,29 @@ class CssController extends BaseController {
         let result;
 
         let processOptions = {};
-        if(this.options.maps) {
+        if (this.options.maps) {
             processOptions = {
-                map: { inline: false },
+                map: {
+                    inline: false
+                },
                 to: this.data.distFile
             };
         }
-    
+
         try {
             result = postcss([postcssAutoprefixer]).process(css.code, processOptions);
-        } catch(error) {
+        } catch (error) {
             // Remove tmpDir to keep the tmp dir clean
             this.removeFiles();
             throw new Error(error.message);
         }
 
         let code = result.css;
-        if(this.options.maps && result.map) {
+        if (this.options.maps && result.map) {
             code = this.removeSourceMapComment(code);
             code += this.getSourceMapComment(result.map.toJSON());
         }
-    
+
         this.removeFiles();
 
         return {

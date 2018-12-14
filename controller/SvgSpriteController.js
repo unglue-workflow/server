@@ -1,5 +1,5 @@
 const BaseController = require('./BaseController'),
-      svgstore = require('svgstore');
+    svgstore = require('svgstore');
 
 class SvgSpriteController extends BaseController {
 
@@ -14,7 +14,7 @@ class SvgSpriteController extends BaseController {
             const fileName = file.file.split('/').pop().replace('.svg', '');
             sprite.add(fileName, file.code);
         });
-        
+
         return {
             code: sprite.toString()
         }

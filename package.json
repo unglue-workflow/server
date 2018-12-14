@@ -1,7 +1,7 @@
 {
   "name": "unglue-server",
   "repository": "https://github.com/unglue-workflow/server",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "main": "server.js",
   "license": "MIT",
   "contributors": [

@@ -1,6 +1,6 @@
 const babelCore = require('babel-core'),
-      uglifyJs = require('uglify-js'),
-      Concat = require('../lib/Concat');
+    uglifyJs = require('uglify-js'),
+    Concat = require('../lib/Concat');
 
 const BaseController = require('./BaseController');
 
@@ -20,12 +20,12 @@ class JsController extends BaseController {
         let js = this.concatJs();
         js = this.babel(js);
 
-        if(this.options.compress) {
+        if (this.options.compress) {
             js = this.uglify(js);
         }
-        
-        if(this.options.maps && js.map) {
-            if(typeof js.map === 'string') {
+
+        if (this.options.maps && js.map) {
+            if (typeof js.map === 'string') {
                 js.map = JSON.parse(js.map);
             }
 
@@ -41,10 +41,10 @@ class JsController extends BaseController {
     concatJs() {
         const concat = new Concat(this.options.maps, this.data.distFile);
 
-        this.data.files.forEach( (file) => {
+        this.data.files.forEach((file) => {
             concat.add(file.file, file.code);
         });
-    
+
         return {
             code: concat.content.toString(),
             map: concat.sourceMap
@@ -52,22 +52,27 @@ class JsController extends BaseController {
     }
 
     babel(js) {
-        let result = babelCore.transform(js.code, {
-            minified: false,
-            inputSourceMap: this.options.maps ? JSON.parse(js.map) : false,
-            sourceMaps: this.options.maps,
-            presets: [
-                [
-                    "env",
-                    {
-                        targets: {
-                            browsers: this.browserlist
+        let result;
+        try {
+            result = babelCore.transform(js.code, {
+                minified: false,
+                inputSourceMap: this.options.maps ? JSON.parse(js.map) : false,
+                sourceMaps: this.options.maps,
+                presets: [
+                    [
+                        "env",
+                        {
+                            targets: {
+                                browsers: this.browserlist
+                            }
                         }
-                    }
+                    ]
                 ]
-            ]
-        });
-    
+            });
+        } catch (error) {
+            throw new Error(`${error.message}\n${error.codeFrame}`);
+        }
+
         return {
             code: result.code,
             map: this.options.maps ? result.map : false
@@ -76,8 +81,8 @@ class JsController extends BaseController {
 
     uglify(js) {
         let compileOptions = {};
-    
-        if(this.options.maps) {
+
+        if (this.options.maps) {
             compileOptions = {
                 sourceMap: {
                     filename: this.data.distFile,

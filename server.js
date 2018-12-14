@@ -35,8 +35,10 @@ app.use(function(error, req, res, next) {
     if(res.statusCode === 200) {
         res.status(500);
     }
-    console.log(error);
-    res.json({ message: error.message });
+
+    res.json({ 
+        message: error.message
+    });
 });
 
 const server = http.createServer(app).listen(argv['port'] ? argv['port'] : 3000, function() {

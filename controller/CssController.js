@@ -77,7 +77,7 @@ class CssController extends BaseController {
             }
 
             let message = 'SCSS:';
-            message += ` ${error.message}${error.line ? ' on line' + ':' + (error.column > 1 ? error.column : '') : ''}${file ? ' in' + file : ''}`;
+            message += ` ${error.message}${error.line ? ' on line ' + error.line + ':' + (error.column > 1 ? error.column : '') : ''}${file ? ' in ' + file : ''}`;
             throw new Error(message);
         }
 

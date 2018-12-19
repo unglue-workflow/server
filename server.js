@@ -36,6 +36,8 @@ app.use(function(error, req, res, next) {
         res.status(500);
     }
 
+    console.info(error);
+
     res.json({ 
         message: error.message
     });

@@ -53,8 +53,13 @@ class CssController extends BaseController {
     sass() {
         let result;
         try {
+            let tmpDir = this.tmpDir;
+            if(this.data.mainFile.slice(0, 1) !== '/') {
+                tmpDir += '/';
+            }
+
             result = sass.renderSync({
-                file: this.tmpDir + this.data.mainFile,
+                file: tmpDir + this.data.mainFile,
                 outputStyle: this.options.compress ? 'compressed' : 'expanded',
                 sourceMap: this.options.maps,
                 outFile: this.data.distFile,
@@ -65,11 +70,14 @@ class CssController extends BaseController {
             // Remove tmpDir to keep the tmp dir clean
             this.removeFiles();
 
-            let file = this.removeTmpDir(error.file);
-            file = this.getRelativePath(file);
+            let file = false;
+            if(error.file) {
+                file = this.removeTmpDir(error.file);
+                file = this.getRelativePath(file);
+            }
 
-            let message = 'SCSS Error:';
-            message += ` ${error.message} on line ${error.line}:${error.column > 1 ? error.column : ''} in ${file}`;
+            let message = 'SCSS:';
+            message += ` ${error.message}${error.line ? ' on line' + ':' + (error.column > 1 ? error.column : '') : ''}${file ? ' in' + file : ''}`;
             throw new Error(message);
         }
 

@@ -2,8 +2,7 @@ const fs = require('fs-extra'),
     sass = require('node-sass'),
     postcss = require('postcss'),
     path = require('path'),
-    postcssAutoprefixer = require('autoprefixer'),
-    validUrl = require('valid-url');
+    postcssAutoprefixer = require('autoprefixer');
 
 const BaseController = require('./BaseController');
 

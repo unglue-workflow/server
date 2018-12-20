@@ -17,7 +17,7 @@ class JsController extends BaseController {
     }
 
     compile() {
-        let js = this.concatJs();
+        let js = this.concat(this.data.files, this.data.distFile);
         js = this.babel(js);
 
         if (this.options.compress) {
@@ -30,24 +30,11 @@ class JsController extends BaseController {
             }
 
             js.code = this.removeSourceMapComment(js.code, false);
-            js.code += this.getSourceMapComment(js.map, false);
+            js.code += this.generateSourceMapComment(js.map, false);
         }
 
         return {
             code: js.code
-        };
-    }
-
-    concatJs() {
-        const concat = new Concat(this.options.maps, this.data.distFile);
-
-        this.data.files.forEach((file) => {
-            concat.add(file.file, file.code);
-        });
-
-        return {
-            code: concat.content.toString(),
-            map: concat.sourceMap
         };
     }
 

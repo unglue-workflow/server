@@ -1,3 +1,5 @@
+const Concat = require('../lib/Concat');
+
 class BaseController {
 
     constructor(req, res, requiredParams) {
@@ -31,21 +33,36 @@ class BaseController {
         this.data[param] = this.req.body[param];
     }
 
+    concat(codeObjects, distFile) {
+        const concat = new Concat(this.options.maps, distFile);
+
+        codeObjects.forEach(codeObject => {
+            concat.add(codeObject.file, codeObject.code, codeObject.map ? codeObject.map : {});
+        });
+
+        return {
+            code: concat.content.toString(),
+            map: concat.sourceMap
+        };
+    }
+
     removeSourceMapComment(code, multiline = true) {
         const regexp = multiline ? new RegExp('\\/\\*# sourceMappingURL[^\\*]*\\*\\/', 'g') : new RegExp('\\/\\/# sourceMappingURL.*', 'g');
         return code.replace(regexp, '');
     }
 
-    getSourceMapComment(jsonMap, multiline = true) {
+    generateSourceMapComment(jsonMap, multiline = true) {
         const startTag = multiline ? '/*# ' : '//# ';
         const endTag = multiline ? ' */' : '';
 
-        for (let i = 0; i < jsonMap.sources.length; i++) {
-            let relativePath = jsonMap.sources[i];
-            relativePath = this.removeTmpDir(relativePath);
-            relativePath = this.getRelativePath(relativePath);
+        if(jsonMap.sources) {
+            for (let i = 0; i < jsonMap.sources.length; i++) {
+                let relativePath = jsonMap.sources[i];
+                relativePath = this.removeTmpDir(relativePath);
+                relativePath = this.getRelativePath(relativePath);
 
-            jsonMap.sources[i] = relativePath;
+                jsonMap.sources[i] = relativePath;
+            }
         }
 
         return `${startTag}sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(jsonMap)).toString('base64')}${endTag}`;

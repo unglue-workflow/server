@@ -1,14 +1,16 @@
 const fs = require('fs-extra'),
     sass = require('node-sass'),
     postcss = require('postcss'),
-    postcssAutoprefixer = require('autoprefixer');
+    path = require('path'),
+    postcssAutoprefixer = require('autoprefixer'),
+    validUrl = require('valid-url');
 
 const BaseController = require('./BaseController');
 
 class CssController extends BaseController {
 
     constructor(req, res) {
-        super(req, res, ['distFile', 'mainFile', 'files']);
+        super(req, res, ['distFile', 'mainFiles', 'files']);
 
         this.tmpDirStamp = Date.now();
         this.tmpDir = `${appRoot}/tmp/scss/${this.tmpDirStamp}`;
@@ -17,7 +19,32 @@ class CssController extends BaseController {
 
     compile() {
         this.writeFiles();
-        let css = this.sass();
+
+        let compiledCode = [];
+        this.data.mainFiles.forEach(mainFile => {
+            let code;
+
+            if(path.extname(mainFile) === '.scss') {
+                console.log("SCSS");
+                code = this.sass(mainFile);
+                code.code = this.removeSourceMapComment(code.code);
+                code.file = mainFile;
+            } else if(path.extname(mainFile) === '.css') {
+                const file = this.data.files.filter(file => {
+                    return file.file === mainFile;
+                });
+                code = file[0];
+                code.map = {};
+            }
+
+            compiledCode.push(code);
+        });
+
+        let css = this.concat(compiledCode, this.data.distFile);
+        if(this.options.maps && css.map) {
+            css.code = css.code + this.generateSourceMapComment(JSON.parse(css.map));
+        }
+
         css = this.postCss(css);
 
         return css;
@@ -50,21 +77,20 @@ class CssController extends BaseController {
         fs.removeSync(this.tmpDir);
     }
 
-    sass() {
+    sass(mainFile) {
         let result;
         try {
             let tmpDir = this.tmpDir;
-            if(this.data.mainFile.slice(0, 1) !== '/') {
+            if(mainFile.slice(0, 1) !== '/') {
                 tmpDir += '/';
             }
 
             result = sass.renderSync({
-                file: tmpDir + this.data.mainFile,
+                file: tmpDir + mainFile,
                 outputStyle: this.options.compress ? 'compressed' : 'expanded',
                 sourceMap: this.options.maps,
                 outFile: this.data.distFile,
-                sourceMapContents: this.options.maps,
-                sourceMapEmbed: this.options.maps
+                sourceMapContents: this.options.maps
             });
         } catch (error) {
             // Remove tmpDir to keep the tmp dir clean
@@ -81,14 +107,9 @@ class CssController extends BaseController {
             throw new Error(message);
         }
 
-        let code = result.css.toString('utf8');
-        if (this.options.maps && result.map) {
-            code = this.removeSourceMapComment(code);
-            code += this.getSourceMapComment(JSON.parse(result.map));
-        }
-
         return {
-            code: code
+            code: result.css.toString('utf8'),
+            map: this.options.maps ? JSON.parse(result.map) : false
         };
     }
 
@@ -116,7 +137,7 @@ class CssController extends BaseController {
         let code = result.css;
         if (this.options.maps && result.map) {
             code = this.removeSourceMapComment(code);
-            code += this.getSourceMapComment(result.map.toJSON());
+            code += this.generateSourceMapComment(result.map.toJSON());
         }
 
         this.removeFiles();

@@ -1,6 +1,7 @@
 .component1 {
   color: red;
   background-color: blue;
+  -webkit-transition: .25s ease-in-out color;
   transition: .25s ease-in-out color;
 }
 
@@ -29,6 +30,7 @@
 .component1 {
   color: red;
   background-color: blue;
+  -webkit-transition: .25s ease-in-out color;
   transition: .25s ease-in-out color;
 }
 

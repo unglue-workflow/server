@@ -24,7 +24,6 @@ class CssController extends BaseController {
             let code;
 
             if(path.extname(mainFile) === '.scss') {
-                console.log("SCSS");
                 code = this.sass(mainFile);
                 code.code = this.removeSourceMapComment(code.code);
                 code.file = mainFile;

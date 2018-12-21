@@ -21,8 +21,6 @@ class CssController extends BaseController {
 
         let compiledCode = [];
         this.data.mainFiles.forEach(mainFile => {
-            let code;
-
             if(path.extname(mainFile) === '.scss') {
                 code = this.sass(mainFile);
                 code.code = this.removeSourceMapComment(code.code);
@@ -31,6 +29,11 @@ class CssController extends BaseController {
                 const file = this.data.files.filter(file => {
                     return file.file === mainFile;
                 });
+
+                if(file.length == 0) {
+                    throw new Error(`mainFile ${mainFile} was not found in files array.`);
+                }
+
                 code = file[0];
                 code.map = {};
             }

@@ -21,6 +21,8 @@ class CssController extends BaseController {
 
         let compiledCode = [];
         this.data.mainFiles.forEach(mainFile => {
+            let code;
+            
             if(path.extname(mainFile) === '.scss') {
                 code = this.sass(mainFile);
                 code.code = this.removeSourceMapComment(code.code);

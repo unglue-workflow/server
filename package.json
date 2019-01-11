@@ -8,6 +8,7 @@
     "Marc Stampfli <marc@zephir.ch> (http://zephir.ch)"
   ],
   "dependencies": {
+    "app-root-dir": "^1.0.2",
     "atob": "^2.1.2",
     "autoprefixer": "^9.4.2",
     "babel-core": "^6.26.3",

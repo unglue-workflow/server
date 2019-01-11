@@ -8,6 +8,7 @@ const http = require('http'),
 
 // Define "appRoot" in global namespace
 global.appRoot = path.resolve(__dirname);
+global.moduleRoot = __dirname;
 
 // Require the routes file
 const routes = require('./routes/routes.js');

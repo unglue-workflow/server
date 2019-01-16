@@ -38,11 +38,7 @@ const router = function (app) {
             .then(Data => {
 
                 console.log(Data);
-
-                res.json({
-                    code: Data.getCompiledCode(ensureOrder = true),
-                    map: Data.getCompiledMap(ensureOrder)
-                })
+                res.json(Data.getCompiled());
             })
             .catch(error => {
                 let githubIssue = 'https://github.com/unglue-workflow/server/issues/new?';

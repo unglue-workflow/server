@@ -1,4 +1,5 @@
 const Compiled = require('./Compiled'),
+      File = require('./File'),
       Concat = require('../lib/Concat');
 
 class Data {
@@ -70,11 +71,7 @@ class Data {
     }
 
     addFile(path, relativePath, code) {
-        this.files.push({
-            path: path,
-            relativePath: relativePath,
-            code: code
-        });
+        this.files.push(new File(path, relativePath, code));
     }
 
     getOptions() {
@@ -97,16 +94,15 @@ class Data {
         return this.params[key] = value;
     }
 
-    getCompiled() {
-        return this.compiled;
-    }
+    getCompiled(ensureOrder = false) {
+        const concated = this.concatCode(ensureOrder);
+        const compiled = new Compiled(this.type);
+        compiled.setCode(concated.getCode()).setMap(concated.getMap());
 
-    getCompiledCode(ensureOrder = false) {
-        return this.concatCode(ensureOrder).getCode();
-    }
+        // Reset compiled object
+        this.compiled = {};
 
-    getCompiledMap(ensureOrder = false) {
-        return this.concatCode(ensureOrder).getMap();
+        return compiled;
     }
 
     addCode(id, code) {
@@ -121,54 +117,51 @@ class Data {
         return this;
     }
 
+    clearCompiled() {
+        this.compiled = {};
+        return this;
+    }
+
     ensureCompiledIdExists(id) {
         if (!this.compiled[id])
             this.compiled[id] = new Compiled(this.type);
     }
 
     concatCode(ensureOrder = false) {
-        if(!this.result) {
-            const concat = new Concat(this.getOption('maps'), this.getParam('distFile'));
+        const concat = new Concat(this.getOption('maps'), this.getParam('distFile'));
 
-            console.log("THIS.COMPILED", ensureOrder);
-            for(const file in this.compiled) {
-                console.log(file);
+        let compiled = {};
+        if(ensureOrder) {
+            if(!this.getParam('mainFiles')) {
+                throw new Error('The param mainFiles is required for Data.ensureOrder to work.');
             }
 
-            const compiled = {};
-            if(ensureOrder) {
-                if(!this.getParam('mainFiles')) {
-                    throw new Error('The param mainFiles is required for Data.ensureOrder to work.');
+            this.getParam('mainFiles').forEach(mainFile => {
+                if(!this.compiled[mainFile]) {
+                    throw new Error(`${mainFile} couldn't be found in Data.compiled.`);
                 }
-
-                this.getParam('mainFiles').forEach(mainFile => {
-                    if(!this.compiled[mainFile]) {
-                        throw new Error(`${mainFile} couldn't be found in Data.compiled.`);
-                    }
-                    
-                    compiled[mainFile] = this.compiled[mainFile];
-                });
-            } else {
-                compiled = this.compiled;
-            }
-
-            console.log("COMPILED");
-            for(const file in compiled) {
-                console.log(file);
-            }
-
-            for (const file in compiled) {
-                const code = compiled[file].getCode();
-                const map = compiled[file].getMap();
-                concat.add(file, code, map ? map : {});
-            }
-
-            this.result = new Compiled(this.type);
-            this.result.setCode(concat.content.toString());
-            this.result.setMap(concat.sourceMap);
+                
+                compiled[mainFile] = this.compiled[mainFile];
+            });
+        } else {
+            compiled = this.compiled;
         }
 
-        return this.result;
+        for(const file in compiled) {
+            console.log(file);
+        }
+
+        for (const file in compiled) {
+            const code = compiled[file].getCode();
+            const map = compiled[file].getMap();
+            concat.add(file, code, map ? map : {});
+        }
+
+        const result = new Compiled(this.type);
+        result.setCode(concat.content.toString());
+        result.setMap(concat.sourceMap);
+
+        return result;
     }
 
 }

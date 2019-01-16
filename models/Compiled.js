@@ -7,8 +7,8 @@ class Compiled {
         }
 
         this.type = type;
-        this.code = null;
-        this.map = null;
+        this.code = "";
+        this.map = "";
     }
 
     getCode(inlineMap = true) {
@@ -26,6 +26,7 @@ class Compiled {
 
     setMap(map) {
         this.map = map;
+        return this;
     }
 
     removeSourceMapComment(code) {

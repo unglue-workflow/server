@@ -32,7 +32,7 @@ const fakeRes = {
     status: function () {}
 }
 
-test('Test 1: Compile without compression & maps', () => {
+/*test('Test 1: Compile without compression & maps', () => {
     const controller = new JsController(fakeReq, fakeRes);
     const compiled = controller.compile();
 
@@ -68,4 +68,4 @@ test('Test 4: Compile with css error', () => {
     } catch (error) {
         expect(error.message).toEqual(fs.readFileSync(`${__dirname}/data/js/expected-error-test-4.js`).toString());
     }
-});
+});*/

@@ -23,9 +23,9 @@ const fakeRes = {
     status: function () {}
 }
 
-test('Test 1: Sprite', () => {
+/*test('Test 1: Sprite', () => {
     const controller = new SvgSpriteController(fakeReq, fakeRes);
     const compiled = controller.compile();
 
     expect(compiled.code).toEqual(fs.readFileSync(`${__dirname}/data/svgSprite/expected-test-1.svg`).toString());
-});
+});*/

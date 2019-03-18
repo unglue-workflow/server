@@ -104,10 +104,7 @@ class Data {
         const compiled = this.getCompiled();
 
         return {
-            compiled: {
-                code: compiled.getCode(),
-                map: this.hasSourcemaps ? compiled.getMap() : false
-            },
+            code: compiled.getCode(),
             log: this.logMessages
         }
     }

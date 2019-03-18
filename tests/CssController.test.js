@@ -58,7 +58,7 @@ const getFakeRes = () => {
     };
 }
 
-test('Test 1: Compile without compression & maps', () => {
+/*test('Test 1: Compile without compression & maps', () => {
     const fakeReq = getFakeReq(),
         fakeRes = getFakeRes();
 
@@ -134,4 +134,4 @@ test('Test 6: Compile with mainFile not found', () => {
     } catch (error) {
         expect(error.message).toMatch(new RegExp('SCSS: File to read not found or unreadable: .*'));
     }
-});
+});*/

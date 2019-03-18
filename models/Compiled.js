@@ -29,7 +29,7 @@ class Compiled {
     }
 
     setMap(map) {
-        this.map = map;
+        this.map = map ? map : '';
         return this;
     }
 

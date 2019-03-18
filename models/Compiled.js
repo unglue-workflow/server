@@ -1,9 +1,13 @@
-
 class Compiled {
 
     constructor(type) {
         if(!type) {
             throw new Error('Compiled needs a type!');
+        }
+
+        this.hasSourcemaps = true;
+        if(type == 'svg') {
+            this.hasSourcemaps = false;
         }
 
         this.type = type;
@@ -12,11 +16,11 @@ class Compiled {
     }
 
     getCode(inlineMap = true) {
-        return this.code + (inlineMap ? this.getSourceMapComment() : '');
+        return this.code + (this.hasSourcemaps && inlineMap ? this.getSourceMapComment() : '');
     }
 
     setCode(code) {
-        this.code = this.removeSourceMapComment(code);
+        this.code = this.hasSourcemaps  ? this.removeSourceMapComment(code) : code;
         return this;
     }
 
@@ -35,20 +39,14 @@ class Compiled {
     }
 
     getSourceMapComment() {
+        if(!this.getMap()) {
+            return '';
+        }
+
         const startTag = this.type === 'css' ? '/*# ' : '//# ';
         const endTag = this.type === 'css' ? ' */' : '';
 
         const sourcemap = this.getMap();
-        /*if(sourcemap.sources) {
-            for (let i = 0; i < sourcemap.length; i++) {
-                // let relativePath = sourcemap[i];
-                // relativePath = this.removeTmpDir(relativePath);
-                // relativePath = this.getRelativePath(relativePath);
-
-                jsonMap.sources[i] = relativePath;
-            }
-        }*/
-
         return `${startTag}sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(sourcemap)).toString('base64')}${endTag}`;
     }
 

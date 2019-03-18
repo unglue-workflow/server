@@ -65,7 +65,16 @@ class ScssController extends BaseController {
                             outputStyle: 'expanded',
                             sourceMap: true,
                             outFile: Data.getParam('distFile'),
-                            // sourceMapContents: true
+                            functions: {
+                                '@warn': function(warning) {
+                                    Data.addLogMessage('Warning: ' + warning.getValue() + ' (main File:' + mainFile + ')');
+                                    return sass.NULL;
+                                },
+                                '@debug': function(debug) {
+                                    Data.addLogMessage('Debug:' + debug.getValue() + ' (main File:' + mainFile + ')');
+                                    return sass.NULL;
+                                },
+                            }
                         }, function (error, result) {
                             if (error) {
                                 reject(error);

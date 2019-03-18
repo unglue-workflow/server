@@ -18,9 +18,15 @@ class Data {
             throw new Error('No files provided!');
         }
 
+        this.hasSourcemaps = true;
+        if(type === 'svg') {
+            this.hasSourcemaps = false;
+        }
+
         this.type = type;
         this.requiredParams = requiredParams;
         this.files = [];
+        this.logMessages = [];
         
         // Get files from request body and remove it
         reqBody.files.forEach(file => {
@@ -94,10 +100,26 @@ class Data {
         return this.params[key] = value;
     }
 
+    getResponseObject() {
+        const compiled = this.getCompiled();
+
+        return {
+            compiled: {
+                code: compiled.getCode(),
+                map: this.hasSourcemaps ? compiled.getMap() : false
+            },
+            log: this.logMessages
+        }
+    }
+
     getCompiled(ensureOrder = false) {
-        const concated = this.concatCode(ensureOrder);
+        const concated = this.concatCompiledCode(ensureOrder);
         const compiled = new Compiled(this.type);
-        compiled.setCode(concated.getCode()).setMap(concated.getMap());
+        compiled.setCode(concated.getCode());
+
+        if(this.hasSourcemaps) {
+            compiled.setMap(concated.getMap());
+        }
 
         // Reset compiled object
         this.compiled = {};
@@ -127,7 +149,12 @@ class Data {
             this.compiled[id] = new Compiled(this.type);
     }
 
-    concatCode(ensureOrder = false) {
+    concatCompiledCode(ensureOrder = false) {
+        // Shortcut if we only have one compiled code
+        if(!ensureOrder && this.compiled.length == 1) {
+            return this.compiled[0];
+        }
+
         const concat = new Concat(this.getOption('maps'), this.getParam('distFile'));
 
         let compiled = {};
@@ -147,21 +174,42 @@ class Data {
             compiled = this.compiled;
         }
 
-        for(const file in compiled) {
-            console.log(file);
-        }
-
         for (const file in compiled) {
             const code = compiled[file].getCode();
-            const map = compiled[file].getMap();
+            const map = this.hasSourcemaps ? compiled[file].getMap() : {};
             concat.add(file, code, map ? map : {});
         }
 
         const result = new Compiled(this.type);
         result.setCode(concat.content.toString());
-        result.setMap(concat.sourceMap);
+
+        if(this.hasSourcemaps) {
+            result.setMap(concat.sourceMap);
+        }
 
         return result;
+    }
+
+    concatFilesCode() {
+        const concat = new Concat(this.getOption('maps'), this.getParam('distFile'));
+
+        for (const file in this.files) {
+            const fileObject = this.files[file];
+            concat.add(fileObject.getPath(), fileObject.getCode(true), {});
+        }
+
+        const result = new Compiled(this.type);
+        result.setCode(concat.content.toString());
+
+        if(this.hasSourcemaps) {
+            result.setMap(concat.sourceMap);
+        }
+
+        return result;
+    }
+
+    addLogMessage(msg) {
+        this.logMessages.push(msg);
     }
 
 }

@@ -20,6 +20,7 @@ class JsController extends BaseController {
         let js = this.concat(this.data.files, this.data.distFile);
         js = this.babel(js);
 
+
         if (this.options.compress) {
             js = this.uglify(js);
         }

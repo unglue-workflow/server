@@ -4,7 +4,7 @@ const babelCore = require('@babel/core'),
 const BaseController = require('./BaseController');
 
 class JsController extends BaseController {
-    
+
     babel(Data) {
         return new Promise((resolve, reject) => {
             const compiled = Data.getCompiled();
@@ -12,6 +12,7 @@ class JsController extends BaseController {
 
             // These are the default options, can be overwritten through the request (options)
             let options = {
+                sourceType: "script",
                 presets: [
                     [
                         "@babel/env",

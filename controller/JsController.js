@@ -4,19 +4,10 @@ const babelCore = require('@babel/core'),
 const BaseController = require('./BaseController');
 
 class JsController extends BaseController {
-
-    concat(Data) {
-        return new Promise((resolve) => {
-            const concatedCode = Data.concatFilesCode();
-            Data.addCode('main', concatedCode.getCode(false)).addMap('main', concatedCode.getMap());
-            resolve(Data);
-        });
-    }
-
+    
     babel(Data) {
         return new Promise((resolve, reject) => {
             const compiled = Data.getCompiled();
-
             const userOptions = Data.getOption('css', {});
 
             // These are the default options, can be overwritten through the request (options)
@@ -51,17 +42,42 @@ class JsController extends BaseController {
             options.inputSourceMap = Data.getOption('maps') ? JSON.parse(compiled.getMap()) : false;
             options.sourceMaps = Data.getOption('maps');
 
-            babelCore.transformAsync(compiled.getCode(), options).then(result => {
-                Data.addCode('main', result.code);
+            const transformations = [];
 
-                if(Data.getOption('maps')) {
-                    Data.addMap('main', result.map);
-                }
-
-                resolve(Data);
-            }).catch(error => {
-                reject(error);
+            Data.getFiles().forEach(File => {
+                transformations.push((Data) => {
+                        return new Promise((resolve, reject) => {
+                            babelCore.transformAsync(File.code, options).then(result => {
+                                Data.addCode(File.path, result.code);
+                
+                                if(Data.getOption('maps')) {
+                                    Data.addMap(File.path, result.map);
+                                }
+                
+                                resolve(Data);
+                            }).catch(error => {
+                                reject(error);
+                            });
+                        });
+                    }
+                );
             });
+
+            // Build a promise chain from the promise array
+            let promise = transformations[0](Data);
+            for (let i = 1; i < transformations.length; i++) {
+                promise = promise.then(Data => transformations[i](Data));
+            }
+
+            // Resolve or reject the promise based on the results from
+            // the promise chain
+            promise
+                .then(Data => {
+                    resolve(Data);
+                 })
+                .catch(error => {
+                    reject(error);
+                });
         });
     }
 
@@ -96,13 +112,12 @@ class JsController extends BaseController {
 
     async compile(Data) {
         return this.prepare(Data, ['distFile'])
-            .then(Data => this.concat(Data))
             .then(Data => this.babel(Data))
             .then(Data => {
                 if(Data.getOption('compress', true)) {
                     return this.uglify(Data);
                 }
-                
+
                 return Data;
             })
             .catch(error => {

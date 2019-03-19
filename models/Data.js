@@ -187,24 +187,6 @@ class Data {
         return result;
     }
 
-    concatFilesCode() {
-        const concat = new Concat(this.getOption('maps'), this.getParam('distFile'));
-
-        for (const file in this.files) {
-            const fileObject = this.files[file];
-            concat.add(fileObject.getPath(), fileObject.getCode(true), {});
-        }
-
-        const result = new Compiled(this.type);
-        result.setCode(concat.content.toString());
-
-        if(this.hasSourcemaps) {
-            result.setMap(concat.sourceMap);
-        }
-
-        return result;
-    }
-
     addLogMessage(msg) {
         this.logMessages.push(msg);
     }

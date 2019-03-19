@@ -62,8 +62,8 @@ class ScssController extends BaseController {
                     return new Promise((resolve, reject) => {
                         sass.render({
                             file: mainFileTmp,
-                            outputStyle: 'expanded',
-                            sourceMap: true,
+                            outputStyle: Data.getOption('compress', true) ? 'compressed' : 'expanded',
+                            sourceMap: Data.getOption('maps', false),
                             outFile: Data.getParam('distFile'),
                             functions: {
                                 '@warn': function(warning) {

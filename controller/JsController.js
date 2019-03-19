@@ -98,7 +98,13 @@ class JsController extends BaseController {
         return this.prepare(Data, ['distFile'])
             .then(Data => this.concat(Data))
             .then(Data => this.babel(Data))
-            .then(Data => this.uglify(Data))
+            .then(Data => {
+                if(Data.getOption('compress', true)) {
+                    return this.uglify(Data);
+                }
+                
+                return Data;
+            })
             .catch(error => {
                 throw error;
             });

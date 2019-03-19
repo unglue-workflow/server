@@ -78,10 +78,16 @@ class Data {
 
     addFile(path, relativePath, code) {
         this.files.push(new File(path, relativePath, code));
+        return this;
     }
 
     getOptions() {
         return this.options;
+    }
+
+    setOption(key, value) {
+        this.options[key] = value;
+        return this;
     }
 
     getOption(key, fallback = false) {

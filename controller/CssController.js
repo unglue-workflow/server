@@ -7,6 +7,11 @@ const BaseController = require('./BaseController');
 
 class CssController extends BaseController {
 
+    constructor() {
+        super();
+        this.name = 'css';
+    }
+    
     postcss(Data) {
         return new Promise((resolve, reject) => {
             // Get all css files

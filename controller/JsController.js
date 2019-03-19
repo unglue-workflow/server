@@ -5,38 +5,17 @@ const BaseController = require('./BaseController');
 
 class JsController extends BaseController {
 
+    constructor() {
+        super();
+        this.name = 'js';
+    }
+
     babel(Data) {
         return new Promise((resolve, reject) => {
             const compiled = Data.getCompiled();
-            const userOptions = Data.getOption('css', {});
+            const jsOptions = Data.getOption('js');
 
-            // These are the default options, can be overwritten through the request (options)
-            let options = {
-                sourceType: "script",
-                presets: [
-                    [
-                        "@babel/env",
-                        {
-                            targets: {
-                                browsers: [
-                                    "> 0.5%",
-                                    "last 2 versions",
-                                    "IE 10"
-                                ]
-                            },
-                            "modules": false
-                        },
-                    ]
-                ]
-            };
-
-            // If the babel options are set (options.css.babel), extend the default options
-            if(userOptions.babel) {
-                options = {
-                    ...options,
-                    ...userOptions.babel
-                };
-            }
+            const options = jsOptions.babel;
 
             // Set the required params – these can't be changed through the user
             options.minified = false;
@@ -85,18 +64,15 @@ class JsController extends BaseController {
     uglify(Data) {
         return new Promise((resolve, reject) => {
             const compiled = Data.getCompiled();
+            const options = Data.getOption('js').uglifyjs;
 
-            let compileOptions = {};
+            options.sourceMap = {
+                filename: Data.getParam('distFile'),
+                url: Data.getParam('distFile') + '.map',
+                content: compiled.getMap()
+            };
 
-            if (Data.getOption('maps')) {
-                compileOptions.sourceMap = {
-                    filename: Data.getParam('distFile'),
-                    url: Data.getParam('distFile') + '.map',
-                    content: compiled.getMap()
-                };
-            }
-
-            const result = uglifyJs.minify(compiled.getCode(), compileOptions);
+            const result = uglifyJs.minify(compiled.getCode(), options);
 
             if(result.error) {
                 reject(result.error);
@@ -111,12 +87,58 @@ class JsController extends BaseController {
         });
     }
 
+    concat(Data) {
+        return new Promise((resolve) => {
+            Data.getFiles().forEach(File => {
+                Data.addCode(File.path, File.code);
+            });
+            resolve(Data);
+        });
+    }
+
     async compile(Data) {
-        return this.prepare(Data, ['distFile'])
-            .then(Data => this.babel(Data))
+        const defaultOptions = {
+            babel: {
+                sourceType: "script",
+                presets: [
+                    [
+                        "@babel/env",
+                        {
+                            targets: {
+                                browsers: [
+                                    "> 0.5%",
+                                    "last 2 versions",
+                                    "IE 10"
+                                ]
+                            },
+                            "modules": false
+                        },
+                    ]
+                ]
+            }
+        };
+
+        return this.prepare(Data, ['distFile'], defaultOptions)
             .then(Data => {
-                if(Data.getOption('compress', true)) {
+                if(Data.getOption(this.name).babel) {
+                    return this.babel(Data);
+                }
+
+                return Data;
+            })
+            .then(Data => {
+                if(Data.getOption('compress', true) && Data.getOption(this.name).uglifyjs) {
                     return this.uglify(Data);
+                }
+
+                return Data;
+            })
+            .then(Data => {
+                const jsOptions = Data.getOption(this.name);
+
+                // If babel & uglify is disabled, concat the files
+                if(!jsOptions.babel && !(jsOptions.uglifyjs && Data.getOption('compress'))) {
+                    return this.concat(Data);
                 }
 
                 return Data;

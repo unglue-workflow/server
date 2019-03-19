@@ -3,6 +3,11 @@ const BaseController = require('./BaseController'),
 
 class SvgSpriteController extends BaseController {
 
+    constructor() {
+        super();
+        this.name = 'svg';
+    }
+
     generateSprite(Data) {
         return new Promise((resolve, reject) => {
             const sprite = svgstore();

@@ -6,6 +6,11 @@ const BaseController = require('./BaseController');
 
 class ScssController extends BaseController {
 
+    constructor() {
+        super();
+        this.name = 'scss';
+    }
+
     prepare(Data, requiredParams) {
         this.tmpDirStamp = Date.now();
         this.tmpDir = `${appRoot}/tmp/scss/${this.tmpDirStamp}`;

@@ -32,7 +32,7 @@ class Data {
         reqBody.files.forEach(file => {
 
             // Catch files that don't have the required properties
-            if(!file.file || !file.relative || !file.code) {
+            if(!file.hasOwnProperty('file') || !file.hasOwnProperty('relative') || !file.hasOwnProperty('code')) {
                 throw new Error('All provided files need the properties file, relative and code.');
             }
 

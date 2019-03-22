@@ -29,7 +29,11 @@ class Compiled {
     }
 
     setMap(map) {
-        this.map = map ? map : '';
+        if(typeof map === 'string') {
+            map = JSON.parse(map);
+        }
+
+        this.map = map ? map : {};
         return this;
     }
 
@@ -47,6 +51,7 @@ class Compiled {
         const endTag = this.type === 'css' ? ' */' : '';
 
         const sourcemap = this.getMap();
+        console.log(this.type === 'js' ? this.getMap() : null);
         return `${startTag}sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(sourcemap)).toString('base64')}${endTag}`;
     }
 

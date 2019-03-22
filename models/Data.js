@@ -117,17 +117,11 @@ class Data {
 
     getCompiled(ensureOrder = false) {
         const concated = this.concatCompiledCode(ensureOrder);
-        const compiled = new Compiled(this.type);
-        compiled.setCode(concated.getCode());
-
-        if(this.hasSourcemaps) {
-            compiled.setMap(concated.getMap());
-        }
 
         // Reset compiled object
         this.compiled = {};
 
-        return compiled;
+        return concated;
     }
 
     addCode(id, code) {
@@ -137,6 +131,10 @@ class Data {
     }
 
     addMap(id, map) {
+        if(typeof map === 'string') {
+            map = JSON.parse(map);
+        }
+
         this.ensureCompiledIdExists(id);
         this.compiled[id].setMap(map);
         return this;
@@ -154,8 +152,8 @@ class Data {
 
     concatCompiledCode(ensureOrder = false) {
         // Shortcut if we only have one compiled code
-        if(!ensureOrder && this.compiled.length == 1) {
-            return this.compiled[0];
+        if(!ensureOrder && Object.keys(this.compiled).length == 1) {
+            return this.compiled[Object.keys(this.compiled)[0]];
         }
 
         const concat = new Concat(this.getOption('maps'), this.getParam('distFile'));
@@ -178,9 +176,9 @@ class Data {
         }
 
         for (const file in compiled) {
-            const code = compiled[file].getCode();
+            const code = compiled[file].getCode(false);
             const map = this.hasSourcemaps ? compiled[file].getMap() : {};
-            concat.add(file, code, map ? map : {});
+            concat.add(file, code, map);
         }
 
         const result = new Compiled(this.type);

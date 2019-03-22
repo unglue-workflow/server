@@ -1,5 +1,6 @@
 const babelCore = require('@babel/core'),
-    uglifyJs = require('uglify-js');
+    uglifyJs = require('uglify-js'),
+    path = require('path');
 
 const BaseController = require('./BaseController');
 
@@ -12,14 +13,11 @@ class JsController extends BaseController {
 
     babel(Data) {
         return new Promise((resolve, reject) => {
-            const compiled = Data.getCompiled();
             const jsOptions = Data.getOption('js');
 
             const options = jsOptions.babel;
-
-            // Set the required params – these can't be changed through the user
             options.minified = false;
-            options.inputSourceMap = Data.getOption('maps') ? JSON.parse(compiled.getMap()) : false;
+            options.inputSourceMap = false;
             options.sourceMaps = Data.getOption('maps');
 
             const transformations = [];
@@ -27,11 +25,15 @@ class JsController extends BaseController {
             Data.getFiles().forEach(File => {
                 transformations.push((Data) => {
                         return new Promise((resolve, reject) => {
-                            babelCore.transformAsync(File.code, options).then(result => {
-                                Data.addCode(File.path, result.code);
-                
+                            // Set the required params – these can't be changed through the user
+                            options.sourceFileName = path.basename(File.getRelativePath());
+                            options.sourceRoot = path.dirname(File.getRelativePath());
+
+                            babelCore.transformAsync(File.getCode(true), options).then(result => {
+                                Data.addCode(File.getPath(), result.code);
+
                                 if(Data.getOption('maps')) {
-                                    Data.addMap(File.path, result.map);
+                                    Data.addMap(File.getPath(), result.map);
                                 }
                 
                                 resolve(Data);
@@ -115,7 +117,8 @@ class JsController extends BaseController {
                         },
                     ]
                 ]
-            }
+            },
+            uglifyjs: {}
         };
 
         return this.prepare(Data, ['distFile'], defaultOptions)
@@ -136,7 +139,6 @@ class JsController extends BaseController {
             .then(Data => {
                 const jsOptions = Data.getOption(this.name);
 
-                // If babel & uglify is disabled, concat the files
                 if(!jsOptions.babel && !(jsOptions.uglifyjs && Data.getOption('compress'))) {
                     return this.concat(Data);
                 }

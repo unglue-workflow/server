@@ -132,7 +132,12 @@ class Data {
 
     addMap(id, map) {
         if(typeof map === 'string') {
-            map = JSON.parse(map);
+            try {
+                map = JSON.parse(map);
+            } catch (err) {
+                console.log(err);
+                map = {};
+            }
         }
 
         this.ensureCompiledIdExists(id);

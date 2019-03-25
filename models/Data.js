@@ -110,16 +110,14 @@ class Data {
         const compiled = this.getCompiled();
 
         return {
-            code: compiled.getCode(),
+            code: compiled.getCode(true),
             log: this.logMessages
         }
     }
 
     getCompiled(ensureOrder = false) {
         const concated = this.concatCompiledCode(ensureOrder);
-
-        // Reset compiled object
-        this.compiled = {};
+        this.clearCompiled();
 
         return concated;
     }
@@ -131,15 +129,6 @@ class Data {
     }
 
     addMap(id, map) {
-        if(typeof map === 'string') {
-            try {
-                map = JSON.parse(map);
-            } catch (err) {
-                console.log(err);
-                map = {};
-            }
-        }
-
         this.ensureCompiledIdExists(id);
         this.compiled[id].setMap(map);
         return this;

@@ -15,7 +15,7 @@ class Compiled {
         this.map = "";
     }
 
-    getCode(inlineMap = true) {
+    getCode(inlineMap = false) {
         return this.code + (this.hasSourcemaps && inlineMap ? this.getSourceMapComment() : '');
     }
 
@@ -30,7 +30,11 @@ class Compiled {
 
     setMap(map) {
         if(typeof map === 'string') {
-            map = JSON.parse(map);
+            try {
+                map = JSON.parse(map);
+            } catch (err) {
+                map = {};
+            }
         }
 
         this.map = map ? map : {};
@@ -51,7 +55,6 @@ class Compiled {
         const endTag = this.type === 'css' ? ' */' : '';
 
         const sourcemap = this.getMap();
-        console.log(this.type === 'js' ? this.getMap() : null);
         return `${startTag}sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(sourcemap)).toString('base64')}${endTag}`;
     }
 

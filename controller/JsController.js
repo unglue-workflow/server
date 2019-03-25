@@ -68,11 +68,13 @@ class JsController extends BaseController {
             const compiled = Data.getCompiled();
             const options = Data.getOption('js').uglifyjs;
 
-            options.sourceMap = {
-                filename: Data.getParam('distFile'),
-                url: Data.getParam('distFile') + '.map',
-                content: compiled.getMap()
-            };
+            if(Data.getOption('maps')) {
+                options.sourceMap = {
+                    filename: Data.getParam('distFile'),
+                    url: Data.getParam('distFile') + '.map',
+                    content: compiled.getMap() ? compiled.getMap() : null
+                };
+            }
 
             const result = uglifyJs.minify(compiled.getCode(), options);
 
@@ -127,10 +129,20 @@ class JsController extends BaseController {
                     return this.babel(Data);
                 }
 
+                Data.getFiles().forEach(File => {
+                    const filePath = File.getPath(),
+                        fileCode = File.getCode();
+
+                    Data.addCode(filePath, fileCode);
+                });
+
                 return Data;
             })
             .then(Data => {
-                if(Data.getOption('compress', true) && Data.getOption(this.name).uglifyjs) {
+                return Data;
+            })
+            .then(Data => {
+                if(Data.getOption('compress', true) && !!Data.getOption(this.name).uglifyjs) {
                     return this.uglify(Data);
                 }
 

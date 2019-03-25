@@ -25,7 +25,7 @@ class Compiled {
     }
 
     getMap() {
-        return this.map;
+        return this.map ? this.map : {};
     }
 
     setMap(map) {
@@ -37,7 +37,7 @@ class Compiled {
             }
         }
 
-        this.map = map ? map : {};
+        this.map = map;
         return this;
     }
 
@@ -47,7 +47,7 @@ class Compiled {
     }
 
     getSourceMapComment() {
-        if(!this.getMap()) {
+        if(!!this.getMap()) {
             return '';
         }
 

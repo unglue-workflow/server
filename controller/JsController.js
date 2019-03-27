@@ -13,9 +13,7 @@ class JsController extends BaseController {
 
     babel(Data) {
         return new Promise((resolve, reject) => {
-            const jsOptions = Data.getOption('js');
-
-            const options = jsOptions.babel;
+            const options = Data.getOption(this.name).babel;
             options.minified = false;
             options.inputSourceMap = false;
             options.sourceMaps = Data.getOption('maps');
@@ -66,7 +64,7 @@ class JsController extends BaseController {
     uglify(Data) {
         return new Promise((resolve, reject) => {
             const compiled = Data.getCompiled();
-            const options = Data.getOption('js').uglifyjs;
+            const options = Data.getOption(this.name).uglifyjs;
 
             if(Data.getOption('maps')) {
                 options.sourceMap = {

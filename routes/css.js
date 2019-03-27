@@ -9,14 +9,10 @@ module.exports = (req, res) => {
     // The second param defines which params have to be set in the req.body
     Data = new Data('css', ['distFile', 'mainFiles'], req.body);
 
-    // The scss constroller is used to compile scss to css
-    ScssController = new ScssController();
-
-    // The css controller is used to compile all css sources to one css
-    CssController = new CssController();
-
-    ScssController.compile(Data)
-        .then(Data => CssController.compile(Data))
+    new ScssController().compile(Data)
+        .then((Data) => {
+            return new CssController().compile(Data);
+        })
         .then(Data => {
             res.json(Data.getResponseObject());
         })

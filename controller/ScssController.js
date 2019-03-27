@@ -43,6 +43,14 @@ class ScssController extends BaseController {
         });
     }
 
+    removeTmpDir(path) {
+        // Remove tmpDir from path if existing
+        if (this.tmpDirStamp) {
+            path = path.split(this.tmpDirStamp).pop();
+        }
+        return path;
+    }
+
     removeFiles() {
         fs.removeSync(this.tmpDir);
     }
@@ -80,12 +88,28 @@ class ScssController extends BaseController {
                                     return sass.NULL;
                                 },
                             }
-                        }, function (error, result) {
+                        }, (error, result) => {
                             if (error) {
-                                reject(error);
+                                // Remove tmpDir to keep the tmp dir clean
+                                let file = false;
+                                if(error.file) {
+                                    file = this.removeTmpDir(error.file);
+                                }
+
+                                let message = 'SCSS:';
+                                message += ` ${error.message}${error.line ? ' on line ' + error.line + ':' + (error.column > 1 ? error.column : '') : ''}${file ? ' in ' + file : ''}`;
+                                reject(message);
                             } else {
+                                let map = {};
+
+                                if(result.map) {
+                                    map = JSON.parse(result.map);
+                                    // Use relative paths in map
+                                    map.sources = map.sources.map(source => Data.getFile(this.removeTmpDir(source)).relativePath);
+                                }
+
                                 Data.addCode(mainFile, result.css.toString())
-                                    .addMap(mainFile, result.map ? result.map.toJSON() : '');
+                                    .addMap(mainFile, map);
 
                                 resolve(Data);
                             }
@@ -108,6 +132,7 @@ class ScssController extends BaseController {
                     resolve(Data);
                  })
                 .catch(error => {
+                    this.removeFiles();
                     reject(error);
                 });
         });

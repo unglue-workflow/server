@@ -18,10 +18,7 @@ class Data {
             throw new Error('No files provided!');
         }
 
-        this.hasSourcemaps = true;
-        if(type === 'svg') {
-            this.hasSourcemaps = false;
-        }
+        this.hasSourcemaps = type != 'svg';
 
         this.type = type;
         this.requiredParams = requiredParams;

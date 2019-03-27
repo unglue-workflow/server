@@ -5,10 +5,7 @@ class Compiled {
             throw new Error('Compiled needs a type!');
         }
 
-        this.hasSourcemaps = true;
-        if(type == 'svg') {
-            this.hasSourcemaps = false;
-        }
+        this.hasSourcemaps = type != 'svg';
 
         this.type = type;
         this.code = "";
@@ -47,7 +44,7 @@ class Compiled {
     }
 
     getSourceMapComment() {
-        if(!!this.getMap()) {
+        if(!this.getMap()) {
             return '';
         }
 

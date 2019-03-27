@@ -102,7 +102,7 @@ class ScssController extends BaseController {
                             } else {
                                 let map = {};
 
-                                if(result.map) {
+                                if(Data.getOption('maps', false) && result.map) {
                                     map = JSON.parse(result.map);
                                     // Use relative paths in map
                                     map.sources = map.sources.map(source => Data.getFile(this.removeTmpDir(source)).relativePath);

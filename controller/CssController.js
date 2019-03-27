@@ -50,8 +50,6 @@ class CssController extends BaseController {
                 require('autoprefixer')(autoprefixerOptions)
             ];
 
-            console.log(cssmqpackerOptions);
-
             if(cssmqpackerOptions !== false) {
                 postCssPlugins.push(require("css-mqpacker")(cssmqpackerOptions));
             }
@@ -67,9 +65,12 @@ class CssController extends BaseController {
                         Data.addLogMessage('PostCSS Warning: ' + warn);
                     });
 
-                    // console.log(result.map.toJSON());
+                    Data.addCode(Data.getParam('distFile'), result.css);
 
-                    Data.addCode(Data.getParam('distFile'), result.css).addMap(Data.getParam('distFile'), result.map.toJSON());
+                    if(Data.getOption('maps', false)) {
+                        Data.addMap(Data.getParam('distFile'), result.map.toJSON());
+                    }
+
                     resolve(Data);
                 })
                 .catch(error => {

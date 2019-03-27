@@ -44,7 +44,7 @@ class Compiled {
     }
 
     getSourceMapComment() {
-        if(!this.getMap()) {
+        if(!this.getMap() || (typeof this.getMap() === 'object' && Object.keys(this.getMap()).length == 0)) {
             return '';
         }
 

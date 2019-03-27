@@ -5,7 +5,6 @@ class BaseController {
     }
 
     prepare(Data, requiredParams, defaultOptions = {}) {
-
         const requestOptions = Data.getOption(this.name, {});
         Data.setOption(this.name, {
             ...defaultOptions,

@@ -15,14 +15,14 @@ class CssController extends BaseController {
             const cssOptions = Data.getOption(this.name);
 
             let autoprefixerOptions = cssOptions.autoprefixer,
-                cssMqpackerOptions = cssOptions.cssMqpacker,
+                cssmqpackerOptions = cssOptions.cssmqpacker,
                 cssnanoOptions = cssOptions.cssnano;
 
             if (typeof autoprefixerOptions != 'object') {
                 autoprefixerOptions = {};
             }
-            if (cssMqpackerOptions === true) {
-                cssMqpackerOptions = {};
+            if (cssmqpackerOptions === true) {
+                cssmqpackerOptions = {};
             }
             if (cssnanoOptions === true) {
                 cssnanoOptions = {};
@@ -46,12 +46,14 @@ class CssController extends BaseController {
                 to: Data.getParam('distFile')
             };
 
-            const postCssPlugins = [
+            const postCssPlugins = [ 
                 require('autoprefixer')(autoprefixerOptions)
             ];
 
-            if(cssMqpackerOptions !== false) {
-                postCssPlugins.push(require("css-mqpacker")(cssMqpackerOptions));
+            console.log(cssmqpackerOptions);
+
+            if(cssmqpackerOptions !== false) {
+                postCssPlugins.push(require("css-mqpacker")(cssmqpackerOptions));
             }
 
             if(cssnanoOptions !== false) {
@@ -79,7 +81,7 @@ class CssController extends BaseController {
     async compile(Data) {
         const defaultOptions = {
             autoprefixer: true,
-            cssMqpacker: true,
+            cssmqpacker: false,
             cssnano: true
         };
 

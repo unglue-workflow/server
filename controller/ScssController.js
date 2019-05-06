@@ -85,7 +85,7 @@ class ScssController extends BaseController {
                                     return sass.NULL;
                                 },
                                 '@debug': function(debug) {
-                                    Data.addLogMessage('Debug:' + debug.getValue() + ' (main File:' + mainFile + ')');
+                                    Data.addLogMessage('Debug: ' + debug.getValue() + ' (main File:' + mainFile + ')');
                                     return sass.NULL;
                                 },
                             }

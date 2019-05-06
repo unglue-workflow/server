@@ -52,7 +52,6 @@ test('Test 1: Default options', done => {
     new ScssController().compile(getDataObject()).then((Data) => {
         return new CssController().compile(Data);
     }).then((Data) => {
-        // fs.writeFileSync(`${dir}/data/css/test1-expected.css`, Data.getCompiled().getCode(true));
         expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test1-expected.css`).toString());
         done();
     });
@@ -64,7 +63,6 @@ test('Test 2: compress: false', done => {
     new ScssController().compile(Data).then((Data) => {
         return new CssController().compile(Data);
     }).then((Data) => {
-        // fs.writeFileSync(`${dir}/data/css/test2-expected.css`, Data.getCompiled().getCode(true));
         expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test2-expected.css`).toString());
         done();
     });
@@ -76,7 +74,6 @@ test('Test 3: maps true', done => {
     new ScssController().compile(Data).then((Data) => {
         return new CssController().compile(Data);
     }).then((Data) => {
-        // fs.writeFileSync(`${dir}/data/css/test3-expected.css`, Data.getCompiled().getCode(true));
         expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test3-expected.css`).toString());
         done();
     });
@@ -89,7 +86,6 @@ test('Test 4: maps true, cssmqpacker true', done => {
     new ScssController().compile(Data).then((Data) => {
         return new CssController().compile(Data);
     }).then((Data) => {
-        // fs.writeFileSync(`${dir}/data/css/test4-expected.css`, Data.getCompiled().getCode(true));
         expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test4-expected.css`).toString());
         done();
     });
@@ -102,7 +98,6 @@ test('Test 5: maps true, autoprefixer false', done => {
     new ScssController().compile(Data).then((Data) => {
         return new CssController().compile(Data);
     }).then((Data) => {
-        // fs.writeFileSync(`${dir}/data/css/test5-expected.css`, Data.getCompiled().getCode(true));
         expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test5-expected.css`).toString());
         done();
     });
@@ -114,7 +109,6 @@ test('Test 6: cssnano false', done => {
     new ScssController().compile(Data).then((Data) => {
         return new CssController().compile(Data);
     }).then((Data) => {
-        // fs.writeFileSync(`${dir}/data/css/test6-expected.css`, Data.getCompiled().getCode(true));
         expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test6-expected.css`).toString());
         done();
     });
@@ -139,6 +133,16 @@ test('Test 8: SCSS @warn', done => {
 
     new ScssController().compile(Data).then(Data => {
         expect(Data.getResponseObject().log).toEqual(["Warning: Test (main File:/resources/src/scss/main.scss)", "Warning: Test #2 (main File:/resources/src/scss/main.scss)"]);
+        done();
+    });
+});
+
+test('Test 9: SCSS @debug', done => {
+    const Data = getDataObject();
+    Data.files[0].code = '@debug "Test"; @debug "Test #2";';
+
+    new ScssController().compile(Data).then(Data => {
+        expect(Data.getResponseObject().log).toEqual(["Debug: Test (main File:/resources/src/scss/main.scss)", "Debug: Test #2 (main File:/resources/src/scss/main.scss)"]);
         done();
     });
 });

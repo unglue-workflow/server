@@ -1,6 +1,7 @@
 const fs = require('fs-extra'),
     sass = require('node-sass'),
-    path = require('path');
+    path = require('path'),
+    errorHelper = require('../helper/error-helper');
 
 const BaseController = require('./BaseController');
 
@@ -144,7 +145,7 @@ class ScssController extends BaseController {
             .then(Data => this.sass(Data))
             .catch(error => {
                 this.removeFiles();
-                throw error;
+                throw errorHelper(error);
             });
     }
 

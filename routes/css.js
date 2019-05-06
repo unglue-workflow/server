@@ -18,20 +18,16 @@ module.exports = (req, res) => {
         })
         .catch(error => {
             let githubIssue = 'https://github.com/unglue-workflow/server/issues/new?';
-
-            if (typeof error === 'object') {
-                githubIssue += `title=${encodeURIComponent('Error: ' + error.message)}`;
+            githubIssue += `title=${encodeURIComponent('Error: ' + error.message)}`;
+            if(error.stack) {
                 githubIssue += `&body=${encodeURIComponent(error.stack)}`;
-            } else {
-                githubIssue += `title=${encodeURIComponent('Error: '+ error)}`;
             }
 
-            console.error(error);
             res.status(500);
             res.json({
-                message: typeof error == 'string' ? error : error.message,
+                message: error.message,
                 // Replace base dir in stack to not expose to much information
-                stack: error.stack ? error.stack.replace(new RegExp(`${global.appRoot}`, 'g'), '') : '',
+                stack: error.stack ? error.stack : '',
                 githubIssue: githubIssue
             });
         });

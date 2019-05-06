@@ -1,0 +1,3 @@
+.component1{color:red;background-color:blue;-webkit-transition:.25s ease-in-out color;transition:.25s ease-in-out color}@media (min-width: 720px){.red{color:red}}.component2{-webkit-animation:comp2-anim 2s ease;animation:comp2-anim 2s ease}@-webkit-keyframes comp2-anim{0%{color:red}to{color:blue}}@keyframes comp2-anim{0%{color:red}to{color:blue}}
+.component1{color:red;background-color:blue;-webkit-transition:.25s ease-in-out color;transition:.25s ease-in-out color}@media (min-width: 740px){.red{color:red}}.component2{-webkit-animation:comp2-anim 2s ease;animation:comp2-anim 2s ease}@keyframes comp2-anim{0%{color:red}to{color:blue}}@media (min-width: 720px){.blue{color:blue}}
+

@@ -1,5 +1,6 @@
 const postcss = require('postcss'),
-    path = require('path');
+    path = require('path'),
+    errorHelper = require('../helper/error-helper');
 
 const BaseController = require('./BaseController');
 
@@ -54,7 +55,7 @@ class CssController extends BaseController {
                 postCssPlugins.push(require("css-mqpacker")(cssmqpackerOptions));
             }
 
-            if(cssnanoOptions !== false) {
+            if(Data.getOption('compress') && cssnanoOptions !== false) {
                 postCssPlugins.push(require('cssnano')(cssnanoOptions));
             }
 
@@ -87,7 +88,10 @@ class CssController extends BaseController {
         };
 
         return this.prepare(Data, ['distFile', 'mainFiles'], defaultOptions)
-            .then(Data => this.postcss(Data));
+            .then(Data => this.postcss(Data))
+            .catch(error => {
+                throw errorHelper(error);
+            });
     }
 
 }

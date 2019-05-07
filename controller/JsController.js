@@ -1,6 +1,7 @@
 const babelCore = require('@babel/core'),
     uglifyJs = require('uglify-js'),
-    path = require('path');
+    path = require('path'),
+    errorHelper = require('../helper/error-helper');
 
 const BaseController = require('./BaseController');
 
@@ -94,6 +95,7 @@ class JsController extends BaseController {
             Data.getFiles().forEach(File => {
                 Data.addCode(File.path, File.code);
             });
+
             resolve(Data);
         });
     }
@@ -127,17 +129,7 @@ class JsController extends BaseController {
                     return this.babel(Data);
                 }
 
-                Data.getFiles().forEach(File => {
-                    const filePath = File.getPath(),
-                        fileCode = File.getCode();
-
-                    Data.addCode(filePath, fileCode);
-                });
-
-                return Data;
-            })
-            .then(Data => {
-                return Data;
+                return this.concat(Data);
             })
             .then(Data => {
                 if(Data.getOption('compress', true) && !!Data.getOption(this.name).uglifyjs) {
@@ -146,17 +138,8 @@ class JsController extends BaseController {
 
                 return Data;
             })
-            .then(Data => {
-                const jsOptions = Data.getOption(this.name);
-
-                if(!jsOptions.babel && !(jsOptions.uglifyjs && Data.getOption('compress'))) {
-                    return this.concat(Data);
-                }
-
-                return Data;
-            })
             .catch(error => {
-                throw error;
+                throw errorHelper(error);
             });
     }
 

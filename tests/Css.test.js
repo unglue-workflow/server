@@ -5,7 +5,7 @@ const ScssController = require('../controller/ScssController'),
       fs = require('fs-extra'),
       dir = __dirname;
 
-global.appRoot = path.resolve(__dirname + '/..');
+global.appRoot = path.resolve(dir + '/..');
 
 const getDataObject = function() {
     return new Data('css', ['distFile', 'mainFiles'], {

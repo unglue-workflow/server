@@ -1,0 +1,1 @@
+var addFive=function(o){return o+5},addTen=function(o){return o+10};console.log("Hellow world!"),console.log(addFive(5)),console.log(addTen(10));

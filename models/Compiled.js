@@ -22,7 +22,7 @@ class Compiled {
     }
 
     getMap() {
-        return this.map ? this.map : {};
+        return this.map ? this.map : null
     }
 
     setMap(map) {

@@ -1,85 +1,146 @@
-const babelCore = require('babel-core'),
+const babelCore = require('@babel/core'),
     uglifyJs = require('uglify-js'),
-    Concat = require('../lib/Concat');
+    path = require('path'),
+    errorHelper = require('../helper/error-helper');
 
 const BaseController = require('./BaseController');
 
 class JsController extends BaseController {
 
-    constructor(req, res) {
-        super(req, res, ['distFile', 'files']);
-
-        this.browserlist = [
-            "> 0.5%",
-            "last 2 versions",
-            "IE 10"
-        ];
+    constructor() {
+        super();
+        this.name = 'js';
     }
 
-    compile() {
-        let js = this.concat(this.data.files, this.data.distFile);
-        js = this.babel(js);
+    babel(Data) {
+        return new Promise((resolve, reject) => {
+            const options = Data.getOption(this.name).babel;
+            options.minified = false;
+            options.inputSourceMap = false;
+            options.sourceMaps = Data.getOption('maps');
 
-        if (this.options.compress) {
-            js = this.uglify(js);
-        }
+            const transformations = [];
 
-        if (this.options.maps && js.map) {
-            if (typeof js.map === 'string') {
-                js.map = JSON.parse(js.map);
+            Data.getFiles().forEach(File => {
+                transformations.push((Data) => {
+                        return new Promise((resolve, reject) => {
+                            // Set the required params – these can't be changed through the user
+                            options.sourceFileName = path.basename(File.getRelativePath());
+                            options.sourceRoot = path.dirname(File.getRelativePath());
+
+                            babelCore.transformAsync(File.getCode(true), options).then(result => {
+                                Data.addCode(File.getPath(), result.code);
+
+                                if(Data.getOption('maps')) {
+                                    Data.addMap(File.getPath(), result.map);
+                                }
+                
+                                resolve(Data);
+                            }).catch(error => {
+                                reject(error);
+                            });
+                        });
+                    }
+                );
+            });
+
+            // Build a promise chain from the promise array
+            let promise = transformations[0](Data);
+            for (let i = 1; i < transformations.length; i++) {
+                promise = promise.then(Data => transformations[i](Data));
             }
 
-            js.code = this.removeSourceMapComment(js.code, false);
-            js.code += this.generateSourceMapComment(js.map, false);
-        }
-
-        return {
-            code: js.code
-        };
+            // Resolve or reject the promise based on the results from
+            // the promise chain
+            promise
+                .then(Data => {
+                    resolve(Data);
+                 })
+                .catch(error => {
+                    reject(error);
+                });
+        });
     }
 
-    babel(js) {
-        let result;
-        try {
-            result = babelCore.transform(js.code, {
-                minified: false,
-                inputSourceMap: this.options.maps ? JSON.parse(js.map) : false,
-                sourceMaps: this.options.maps,
+    uglify(Data) {
+        return new Promise((resolve, reject) => {
+            const compiled = Data.getCompiled();
+            const options = Data.getOption(this.name).uglifyjs;
+
+            if(Data.getOption('maps')) {
+                options.sourceMap = {
+                    filename: Data.getParam('distFile'),
+                    url: Data.getParam('distFile') + '.map',
+                    content: compiled.getMap() ? compiled.getMap() : null
+                };
+            }
+
+            const result = uglifyJs.minify(compiled.getCode(), options);
+
+            if(result.error) {
+                reject(result.error);
+            } else {
+                Data.addCode('main', result.code);
+                if(Data.getOption('maps')) {
+                    Data.addMap('main', result.map);
+                }
+
+                resolve(Data);
+            }
+        });
+    }
+
+    concat(Data) {
+        return new Promise((resolve) => {
+            Data.getFiles().forEach(File => {
+                Data.addCode(File.path, File.code);
+            });
+
+            resolve(Data);
+        });
+    }
+
+    async compile(Data) {
+        const defaultOptions = {
+            babel: {
+                sourceType: "script",
                 presets: [
                     [
-                        "env",
+                        "@babel/env",
                         {
                             targets: {
-                                browsers: this.browserlist
-                            }
-                        }
+                                browsers: [
+                                    "> 0.5%",
+                                    "last 2 versions",
+                                    "IE 10"
+                                ]
+                            },
+                            "modules": false
+                        },
                     ]
                 ]
-            });
-        } catch (error) {
-            throw new Error(`${error.message}\n${error.codeFrame}`);
-        }
-
-        return {
-            code: result.code,
-            map: this.options.maps ? result.map : false
+            },
+            uglifyjs: {}
         };
-    }
 
-    uglify(js) {
-        let compileOptions = {};
-
-        if (this.options.maps) {
-            compileOptions = {
-                sourceMap: {
-                    filename: this.data.distFile,
-                    url: this.data.distFile + '.map',
-                    content: js.map
+        return this.prepare(Data, ['distFile'], defaultOptions)
+            .then(Data => {
+                if(Data.getOption(this.name).babel) {
+                    return this.babel(Data);
                 }
-            };
-        }
 
-        return uglifyJs.minify(js.code, compileOptions);
+                return this.concat(Data);
+            })
+            .then(Data => {
+                if(Data.getOption('compress', true) && !!Data.getOption(this.name).uglifyjs) {
+                    return this.uglify(Data);
+                }
+
+                return Data;
+            })
+            .catch(error => {
+                throw errorHelper(error);
+            });
     }
 
 }

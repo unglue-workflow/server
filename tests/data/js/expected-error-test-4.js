@@ -1,3 +1,0 @@
-unknown: Unexpected token, expected , (1:24)
-[0m[31m[1m>[22m[39m[90m 1 | [39m[36mconst[39m addFive [33m=[39m (xconst addTen [33m=[39m (x) [33m=>[39m {[36mreturn[39m x [33m+[39m [35m10[39m[33m;[39m}[33m;[39mconsole[33m.[39mlog([32m"Hellow world!"[39m)[33m;[39m console[33m.[39mlog(addFive([35m5[39m))[33m;[39m console[33m.[39mlog(addTen([35m10[39m))[33m;[39m
- [90m   | [39m                        [31m[1m^[22m[39m[0m

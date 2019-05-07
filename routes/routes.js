@@ -1,29 +1,19 @@
+const process = require('process'),
+    fs = require('fs-extra'),
+    path = require('path');
+
 // App router
 const router = function (app) {
-    const compile = (controllerName, req, res) => {
-        let Controller = require('../controller/' + controllerName);
-        Controller = new Controller(req, res);
-        return Controller.compile();
-    };
 
-    app.get('/', function (req, res) {
-        res.status(200).send('Available Endpoints (POST): /compile/scss, /compile/js');
+    app.get('/', (req, res) => {
+        res.redirect('https://unglue.io');
     });
 
-    app.post('/compile/css', function (req, res) {
-        const result = compile('CssController', req, res);
-        res.json(result);
-    });
+    app.post('/compile/css', require('./css'));
 
-    app.post('/compile/js', function (req, res) {
-        const result = compile('JsController', req, res);
-        res.json(result);
-    });
+    app.post('/compile/js', require('./js'));
 
-    app.post('/compile/svg-sprite', function (req, res) {
-        const result = compile('SvgSpriteController', req, res);
-        res.json(result);
-    });
+    app.post('/compile/svg-sprite', require('./svg-sprite'));
 
 };
 

@@ -1,23 +1,44 @@
 const BaseController = require('./BaseController'),
-    svgstore = require('svgstore');
+    svgstore = require('svgstore'),
+    errorHelper = require('../helper/error-helper');
 
 class SvgSpriteController extends BaseController {
 
-    constructor(req, res) {
-        super(req, res, ['files']);
+    constructor() {
+        super();
+        this.name = 'svg';
     }
 
-    compile() {
-        const sprite = svgstore();
+    generateSprite(Data) {
+        return new Promise((resolve, reject) => {
+            const sprite = svgstore();
 
-        this.data.files.forEach(file => {
-            const fileName = file.file.split('/').pop().replace('.svg', '');
-            sprite.add(fileName, file.code);
+            Data.getFiles().forEach(file => {
+                const fileName = file.getPath().split('/').pop().replace('.svg', '');
+                sprite.add(fileName, file.getCode());
+            });
+
+            Data.addCode('main', sprite.toString(Data.getOption(this.name, {})));
+
+            resolve(Data);
         });
+    }
 
-        return {
-            code: sprite.toString()
-        }
+    async compile(Data) {
+        const defaultOptions = {
+            cleanDefs: false,
+            cleanSymbols: false,
+            svgAttrs: false,
+            symbolAttrs: false,
+            copyAttrs: false,
+            renameDefs: false
+        };
+
+        return this.prepare(Data, [])
+            .then(Data => this.generateSprite(Data))
+            .catch(error => {
+                throw errorHelper(error);
+            });
     }
 
 }

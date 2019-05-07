@@ -8,12 +8,16 @@
     "Marc Stampfli <marc@zephir.ch> (http://zephir.ch)"
   ],
   "dependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "app-root-dir": "^1.0.2",
     "atob": "^2.1.2",
     "autoprefixer": "^9.4.2",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
     "body-parser": "^1.18.3",
     "convert-source-map": "^1.6.0",
+    "css-mqpacker": "^7.0.0",
+    "cssnano": "^4.1.10",
+    "cssnano-preset-advanced": "^4.0.7",
     "express": "^4.16.4",
     "fs-extra": "^7.0.1",
     "morgan": "^1.9.1",

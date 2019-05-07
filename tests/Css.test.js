@@ -146,3 +146,50 @@ test('Test 9: SCSS @debug', done => {
         done();
     });
 });
+
+test('Test 10: SCSS / CSS mixed', done => {
+    const Data = getDataObject();
+    const mainFiles = Data.getParam('mainFiles', []);
+    mainFiles.push('test.css');
+    Data.setParam('mainFiles', mainFiles);
+    Data.addFile('test.css', 'test.css', '.color { transition: .25s ease-in-out color; }');
+
+    new ScssController().compile(Data).then((Data) => {
+        return new CssController().compile(Data);
+    }).then((Data) => {
+        expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test10-expected.css`).toString());
+        done();
+    });
+});
+
+test('Test 11: SCSS / CSS mixed (CSS at beginning)', done => {
+    const Data = getDataObject();
+    const mainFiles = Data.getParam('mainFiles', []);
+    mainFiles.unshift('test.css');
+    Data.setParam('mainFiles', mainFiles);
+    Data.addFile('test.css', 'test.css', '.color { transition: .25s ease-in-out color; }');
+
+    new ScssController().compile(Data).then((Data) => {
+        return new CssController().compile(Data);
+    }).then((Data) => {
+        expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test11-expected.css`).toString());
+        done();
+    });
+});
+
+test('Test 12: mainFile CSS not in files', done => {
+    const Data = getDataObject();
+    const mainFiles = Data.getParam('mainFiles', []);
+    mainFiles.unshift('test.css');
+    Data.setParam('mainFiles', mainFiles);
+
+    new ScssController().compile(Data).then((Data) => {
+        return new CssController().compile(Data);
+    }).catch(e => {
+        expect(e).toEqual({
+            message: "test.css couldn't be found in Data.compiled. Make sure to send it in the files param.",
+            stack: null
+        });
+        done();
+    });
+});

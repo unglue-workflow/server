@@ -86,3 +86,15 @@ test('Test 5: maps true, babel false, uglify false', done => {
         done();
     });
 });
+
+test('Test 6: Error', done => {
+    const Data = getDataObject();
+    Data.files[0].code = '¢æåß∂æ±“#';
+    new JsController().compile(Data).catch(e => {
+        expect(e).toEqual({
+            message: "unknown: Unexpected character \'¢\' (1:0)\n\n\u001b[0m\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 1 | \u001b[39m¢æåß∂æ±“\u001b[33m#\u001b[39m\u001b[0m\n\u001b[0m \u001b[90m   | \u001b[39m\u001b[31m\u001b[1m^\u001b[22m\u001b[39m\u001b[0m",
+            stack: 'SyntaxError: unknown: Unexpected character \'¢\' (1:0)\n\n\u001b[0m\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 1 | \u001b[39m¢æåß∂æ±“\u001b[33m#\u001b[39m\u001b[0m\n\u001b[0m \u001b[90m   | \u001b[39m\u001b[31m\u001b[1m^\u001b[22m\u001b[39m\u001b[0m\n    at Parser.raise (/node_modules/@babel/parser/lib/index.js:6322:17)\n    at Parser.getTokenFromCode (/node_modules/@babel/parser/lib/index.js:7011:10)\n    at Parser.nextToken (/node_modules/@babel/parser/lib/index.js:6520:12)\n    at Parser.parse (/node_modules/@babel/parser/lib/index.js:11208:10)\n    at parse (/node_modules/@babel/parser/lib/index.js:11245:38)\n    at parser (/node_modules/@babel/core/lib/transformation/normalize-file.js:170:34)\n    at normalizeFile (/node_modules/@babel/core/lib/transformation/normalize-file.js:138:11)\n    at runSync (/node_modules/@babel/core/lib/transformation/index.js:44:43)\n    at runAsync (/node_modules/@babel/core/lib/transformation/index.js:35:14)\n    at process.nextTick (/node_modules/@babel/core/lib/transform.js:34:34)\n    at process._tickCallback (internal/process/next_tick.js:61:11)'
+        });
+        done();
+    });
+});

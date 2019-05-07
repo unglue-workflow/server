@@ -1,8 +1,10 @@
+const errorHelper = require('../helper/error-helper');
+
 class Compiled {
 
     constructor(type) {
         if(!type) {
-            throw new Error('Compiled needs a type!');
+            throw errorHelper('Compiled needs a type!');
         }
 
         this.hasSourcemaps = type != 'svg';

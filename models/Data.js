@@ -1,21 +1,22 @@
 const Compiled = require('./Compiled'),
       File = require('./File'),
-      Concat = require('../lib/Concat');
+      Concat = require('../lib/Concat'),
+      errorHelper = require('../helper/error-helper');
 
 class Data {
 
     constructor(type, requiredParams, reqBody) {
         if(!type) {
-            throw new Error('Data needs type!');
+            throw errorHelper('Data needs type!');
         }
         if(!requiredParams) {
-            throw new Error('Data needs requiredParams!');
+            throw errorHelper('Data needs requiredParams!');
         }
         if(!reqBody) {
-            throw new Error('Data needs reqBody!');
+            throw errorHelper('Data needs reqBody!');
         }
         if(!reqBody.files) {
-            throw new Error('No files provided!');
+            throw errorHelper('No files provided!');
         }
 
         this.hasSourcemaps = type != 'svg';
@@ -30,7 +31,7 @@ class Data {
 
             // Catch files that don't have the required properties
             if(!file.hasOwnProperty('file') || !file.hasOwnProperty('relative') || !file.hasOwnProperty('code')) {
-                throw new Error('All provided files need the properties file, relative and code.');
+                throw errorHelper('All provided files need the properties file, relative and code.');
             }
 
             this.addFile(file.file, file.relative, file.code);
@@ -52,7 +53,7 @@ class Data {
     checkRequiredParams(requiredParams) {
         requiredParams.forEach(requiredParam => {
             if(!this.getParam(requiredParam, false)) {
-                throw new Error(`Required param "${requiredParam}" not provided.`);
+                throw errorHelper(`Required param "${requiredParam}" not provided.`);
             }
         });
 
@@ -66,11 +67,6 @@ class Data {
     getFile(filePath) {
         const file = this.files.filter(file => file.path === filePath);
         return file ? file[0] : false;
-    }
-
-    removeFile(file) {
-        delete this.files[file];
-        return this;
     }
 
     addFile(path, relativePath, code) {
@@ -152,12 +148,12 @@ class Data {
         let compiled = {};
         if(ensureOrder) {
             if(!this.getParam('mainFiles')) {
-                throw new Error('The param mainFiles is required for Data.ensureOrder to work.');
+                throw errorHelper('The param mainFiles is required for Data.ensureOrder to work.');
             }
 
             this.getParam('mainFiles').forEach(mainFile => {
                 if(!this.compiled[mainFile]) {
-                    throw new Error(`${mainFile} couldn't be found in Data.compiled.`);
+                    throw errorHelper(`${mainFile} couldn't be found in Data.compiled. Make sure to send it in the files param.`);
                 }
                 
                 compiled[mainFile] = this.compiled[mainFile];

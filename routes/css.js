@@ -17,18 +17,10 @@ module.exports = (req, res) => {
             res.json(Data.getResponseObject());
         })
         .catch(error => {
-            let githubIssue = 'https://github.com/unglue-workflow/server/issues/new?';
-            githubIssue += `title=${encodeURIComponent('Error: ' + error.message)}`;
-            if(error.stack) {
-                githubIssue += `&body=${encodeURIComponent(error.stack)}`;
-            }
-
             res.status(500);
             res.json({
                 message: error.message,
-                // Replace base dir in stack to not expose to much information
-                stack: error.stack ? error.stack : '',
-                githubIssue: githubIssue
+                stack: error.stack ? error.stack : ''
             });
         });
 };

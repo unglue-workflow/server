@@ -16,14 +16,10 @@ class CssController extends BaseController {
             const cssOptions = Data.getOption(this.name);
 
             let autoprefixerOptions = cssOptions.autoprefixer,
-                cssmqpackerOptions = cssOptions.cssmqpacker,
                 cssnanoOptions = cssOptions.cssnano;
 
             if (typeof autoprefixerOptions != 'object') {
                 autoprefixerOptions = {};
-            }
-            if (cssmqpackerOptions === true) {
-                cssmqpackerOptions = {};
             }
             if (cssnanoOptions === true) {
                 cssnanoOptions = {};
@@ -50,10 +46,6 @@ class CssController extends BaseController {
             const postCssPlugins = [ 
                 require('autoprefixer')(autoprefixerOptions)
             ];
-
-            if(cssmqpackerOptions !== false) {
-                postCssPlugins.push(require("css-mqpacker")(cssmqpackerOptions));
-            }
 
             if(Data.getOption('compress') && cssnanoOptions !== false) {
                 postCssPlugins.push(require('cssnano')(cssnanoOptions));
@@ -83,7 +75,6 @@ class CssController extends BaseController {
     async compile(Data) {
         const defaultOptions = {
             autoprefixer: true,
-            cssmqpacker: false,
             cssnano: true
         };
 

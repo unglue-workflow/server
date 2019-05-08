@@ -79,18 +79,6 @@ test('Test 3: maps true', done => {
     });
 });
 
-test('Test 4: maps true, cssmqpacker true', done => {
-    const Data = getDataObject();
-    Data.setOption('maps', true);
-    Data.setOption('css', {'cssmqpacker': true});
-    new ScssController().compile(Data).then((Data) => {
-        return new CssController().compile(Data);
-    }).then((Data) => {
-        expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test4-expected.css`).toString());
-        done();
-    });
-});
-
 test('Test 5: maps true, autoprefixer false', done => {
     const Data = getDataObject();
     Data.setOption('maps', true);

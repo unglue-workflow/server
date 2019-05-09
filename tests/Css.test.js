@@ -181,3 +181,33 @@ test('Test 12: mainFile CSS not in files', done => {
         done();
     });
 });
+
+test('Test 13: cssnano option', done => {
+    const Data = getDataObject();
+    Data.setParam('mainFiles', ['/test.scss']);
+    Data.addFile('/test.scss', '/test.scss', '.width { width: calc(2 * 100px); }');
+    Data.setOption('css', {'cssnano': {
+        preset: ['default', {
+            calc: false
+        }]
+    }});
+    new ScssController().compile(Data).then((Data) => {
+        return new CssController().compile(Data);
+    }).then((Data) => {
+        expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test13-expected.css`).toString());
+        done();
+    });
+});
+
+test('Test 14: autoprefixer option', done => {
+    const Data = getDataObject();
+    Data.setParam('mainFiles', ['/test.scss']);
+    Data.addFile('/test.scss', '/test.scss', '.transition { transition: .25s ease-in-out color; }');
+    Data.setOption('css', {'autoprefixer': {add: false}});
+    new ScssController().compile(Data).then((Data) => {
+        return new CssController().compile(Data);
+    }).then((Data) => {
+        expect(Data.getCompiled().getCode(true)).toEqual(fs.readFileSync(`${dir}/data/css/test14-expected.css`).toString());
+        done();
+    });
+});

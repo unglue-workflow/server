@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.2 (10. July 2019)
+
++ [#6](https://github.com/unglue-workflow/server/issues/6) Add root get & post response with version and time
+
+## 1.1.1 (08. May 2019)
+
++ Version bump
+
 ## 1.1.0 (08. May 2019)
 
 + Refactoring of Routes / Controller and Model code to work with promises

@@ -1,13 +1,18 @@
-const process = require('process'),
-    fs = require('fs-extra'),
-    path = require('path');
+const pjson = require('../package.json');
 
 // App router
 const router = function (app) {
 
-    app.get('/', (req, res) => {
-        res.redirect('https://unglue.io');
-    });
+    const defaultResponse = (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+            version: pjson.version,
+            time: Date.now()
+        }));
+    };
+
+    app.get('/', defaultResponse)
+    app.post('/', defaultResponse)
 
     app.post('/compile/css', require('./css'));
 
